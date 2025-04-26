@@ -1,4 +1,5 @@
-# Propergol
+# propergol
+
 Properties driver for Go!
 
 This module provides management for `.properties` file.
