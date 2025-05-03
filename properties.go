@@ -15,6 +15,8 @@ type Properties struct {
 
 /*
  * Assign the given value to the property with the specified key.
+ * If no property with this key exists, it is added;
+ * otherwise, the value is replaced by the one given and the former value is discarded.
  */
 func (p *Properties) Set(key string, value string) {
 	// TODO
@@ -22,6 +24,7 @@ func (p *Properties) Set(key string, value string) {
 
 /*
  * Retrieve the value of the property with the specified key.
+ * If there is no property with this key, nil is returned.
  */
 func (p *Properties) Get(key string) string {
 	return "" // TODO
