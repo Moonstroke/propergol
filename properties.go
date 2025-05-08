@@ -34,13 +34,13 @@ func (p *Properties) Get(key string) string {
 /*
  * Load properties in texte form from the given reader.
  */
-func (p *Properties) Load(bufio.Reader) error {
+func (p *Properties) Load(*bufio.Reader) error {
 	return errors.New("not implemented") // TODO
 }
 
 /*
  * Output the properties in text form to the given writer.
  */
-func (p *Properties) Write(bufio.Writer) error {
+func (p *Properties) Write(*bufio.Writer) error {
 	return errors.New("not implemented") // TODO
 }
