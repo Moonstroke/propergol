@@ -2,6 +2,7 @@ package properties
 
 import (
 	"bufio"
+	"errors"
 )
 
 /*
@@ -34,12 +35,12 @@ func (p *Properties) Get(key string) string {
  * Load properties in texte form from the given reader.
  */
 func (p *Properties) Load(bufio.Reader) error {
-	return nil // TODO
+	return errors.New("not implemented") // TODO
 }
 
 /*
  * Output the properties in text form to the given writer.
  */
 func (p *Properties) Write(bufio.Writer) error {
-	return nil // TODO
+	return errors.New("not implemented") // TODO
 }
