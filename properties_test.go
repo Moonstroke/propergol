@@ -1,18 +1,45 @@
 package properties
 
 import (
+	"bufio"
+	"strings"
 	"testing"
 )
 
 const (
 	KEY   = "key"
 	VALUE = "value"
+	REPR  = KEY + "=" + VALUE
 )
 
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 	prop := Properties{}
 	prop.Set(KEY, VALUE)
 	if prop.Get(KEY) != VALUE {
+		t.Fail()
+	}
+}
+
+func TestPropertiesLoadParsesRepresentation(t *testing.T) {
+	prop := Properties{}
+	e := prop.Load(bufio.NewReader(strings.NewReader(REPR)))
+	if e != nil {
+		t.Fatal(e)
+	}
+	if prop.Get(KEY) != VALUE {
+		t.Fail()
+	}
+}
+
+func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
+	prop := Properties{}
+	prop.Set(KEY, VALUE)
+	writer := strings.Builder{}
+	e := prop.Write(bufio.NewWriter(&writer))
+	if e != nil {
+		t.Fatal(e)
+	}
+	if writer.String() != REPR {
 		t.Fail()
 	}
 }
