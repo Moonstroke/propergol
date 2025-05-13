@@ -27,7 +27,7 @@ func New() *Properties {
  * otherwise, the value is replaced by the one given and the former value is discarded.
  */
 func (p *Properties) Set(key string, value string) {
-	// TODO
+	p.values[key] = value
 }
 
 /*
@@ -35,7 +35,7 @@ func (p *Properties) Set(key string, value string) {
  * If there is no property with this key, nil is returned.
  */
 func (p *Properties) Get(key string) string {
-	return "" // TODO
+	return p.values[key]
 }
 
 /*
