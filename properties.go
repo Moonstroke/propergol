@@ -15,6 +15,13 @@ type Properties struct {
 }
 
 /*
+ * Create an empty instance of the Properties structure.
+ */
+func New() *Properties {
+	return &Properties{}
+}
+
+/*
  * Assign the given value to the property with the specified key.
  * If no property with this key exists, it is added;
  * otherwise, the value is replaced by the one given and the former value is discarded.
