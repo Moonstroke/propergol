@@ -11,7 +11,7 @@ import (
  * The property keys and values are represented as string objects.
  */
 type Properties struct {
-	// TODO
+	values map[string]string
 }
 
 /*
