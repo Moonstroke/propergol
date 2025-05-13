@@ -12,8 +12,12 @@ const (
 	REPR  = KEY + "=" + VALUE
 )
 
+func setUpTestInstance() *Properties {
+	return &Properties{}
+}
+
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
-	prop := Properties{}
+	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
 	if prop.Get(KEY) != VALUE {
 		t.Fail()
@@ -21,7 +25,7 @@ func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 }
 
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
-	prop := Properties{}
+	prop := setUpTestInstance()
 	e := prop.Load(bufio.NewReader(strings.NewReader(REPR)))
 	if e != nil {
 		t.Fatal(e)
@@ -32,7 +36,7 @@ func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 }
 
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
-	prop := Properties{}
+	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
 	writer := strings.Builder{}
 	e := prop.Write(bufio.NewWriter(&writer))
