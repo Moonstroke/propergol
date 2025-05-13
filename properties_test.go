@@ -13,7 +13,7 @@ const (
 )
 
 func setUpTestInstance() *Properties {
-	return &Properties{}
+	return New()
 }
 
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
