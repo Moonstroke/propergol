@@ -38,12 +38,15 @@ func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
-	writer := strings.Builder{}
-	e := prop.Store(bufio.NewWriter(&writer))
+	stringWriter := strings.Builder{}
+	bufWriter := bufio.NewWriter(&stringWriter)
+	e := prop.Store(bufWriter)
 	if e != nil {
 		t.Fatal(e)
 	}
-	if stored := writer.String(); stored != REPR {
+	/* Ensure that the text is passed down to the string writer */
+	bufWriter.Flush()
+	if stored := stringWriter.String(); stored != REPR {
 		t.Fatal("Expected: " + REPR + "; got: " + stored)
 	}
 }
