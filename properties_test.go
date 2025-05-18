@@ -19,8 +19,8 @@ func setUpTestInstance() *Properties {
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
-	if prop.Get(KEY) != VALUE {
-		t.Fail()
+	if got := prop.Get(KEY); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
 
@@ -30,8 +30,8 @@ func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if prop.Get(KEY) != VALUE {
-		t.Fail()
+	if got := prop.Get(KEY); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
 
@@ -43,7 +43,7 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if writer.String() != REPR {
-		t.Fail()
+	if stored := writer.String(); stored != REPR {
+		t.Fatal("Expected: " + REPR + "; got: " + stored)
 	}
 }
