@@ -39,7 +39,7 @@ func (p *Properties) Get(key string) string {
 }
 
 /*
- * Load properties in texte form from the given reader.
+ * Parse properties in text form from the given reader.
  */
 func (p *Properties) Load(*bufio.Reader) error {
 	return errors.New("not implemented") // TODO
