@@ -9,7 +9,7 @@ import (
 const (
 	KEY   = "key"
 	VALUE = "value"
-	REPR  = KEY + "=" + VALUE
+	REPR  = KEY + "=" + VALUE + "\n"
 )
 
 func setUpTestInstance() *Properties {
