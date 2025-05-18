@@ -18,7 +18,7 @@ type Properties struct {
  * Create an empty instance of the Properties structure.
  */
 func New() *Properties {
-	return &Properties{}
+	return &Properties{make(map[string]string)}
 }
 
 /*
