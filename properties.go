@@ -48,6 +48,6 @@ func (p *Properties) Load(*bufio.Reader) error {
 /*
  * Output the properties in text form to the given writer.
  */
-func (p *Properties) Write(*bufio.Writer) error {
+func (p *Properties) Store(*bufio.Writer) error {
 	return errors.New("not implemented") // TODO
 }

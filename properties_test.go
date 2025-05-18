@@ -39,7 +39,7 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
 	writer := strings.Builder{}
-	e := prop.Write(bufio.NewWriter(&writer))
+	e := prop.Store(bufio.NewWriter(&writer))
 	if e != nil {
 		t.Fatal(e)
 	}
