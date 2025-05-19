@@ -47,6 +47,22 @@ func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 	assertSetAndGetBackSame(t, KEY, VALUE)
 }
 
+func TestPropertiesAcceptKeysWithSpaces(t *testing.T) {
+	assertSetAndGetBackSame(t, "a key with spaces", "whatever")
+}
+
+func TestPropertiesAcceptValuesWithSpaces(t *testing.T) {
+	assertSetAndGetBackSame(t, "whatever", "a value with spaces")
+}
+
+func TestPropertiesAcceptValuesWithColons(t *testing.T) {
+	assertSetAndGetBackSame(t, "whatever", "a:value:with:colons")
+}
+
+func TestPropertiesAcceptValuesWithSeparators(t *testing.T) {
+	assertSetAndGetBackSame(t, "whatever", "a=value=with=separators")
+}
+
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop)
