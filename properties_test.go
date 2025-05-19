@@ -16,7 +16,7 @@ func setUpTestInstance() *Properties {
 	return New()
 }
 
-func assertSetAndGetBack(t *testing.T, key, value string) {
+func assertSetAndGetBackSame(t *testing.T, key, value string) {
 	prop := setUpTestInstance()
 	prop.Set(key, value)
 	if got := prop.Get(key); got != value {
@@ -44,7 +44,7 @@ func storeToString(t *testing.T, prop *Properties) string {
 }
 
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
-	assertSetAndGetBack(t, KEY, VALUE)
+	assertSetAndGetBackSame(t, KEY, VALUE)
 }
 
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
