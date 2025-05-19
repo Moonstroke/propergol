@@ -19,7 +19,7 @@ func setUpTestInstance() *Properties {
 func assertSetAndGetBack(t *testing.T, prop *Properties, key, value string) {
 	prop.Set(key, value)
 	if got := prop.Get(key); got != value {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
+		t.Fatal("For key " + key + `: expected value "` + value + `", got "` + got + `"`)
 	}
 }
 
