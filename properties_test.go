@@ -16,6 +16,13 @@ func setUpTestInstance() *Properties {
 	return New()
 }
 
+func assertSetAndGetBack(t *testing.T, prop *Properties, key, value string) {
+	prop.Set(key, value)
+	if got := prop.Get(key); got != value {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
+	}
+}
+
 func loadFromString(t *testing.T, prop *Properties) {
 	e := prop.Load(bufio.NewReader(strings.NewReader(REPR)))
 	if e != nil {
@@ -37,10 +44,7 @@ func storeToString(t *testing.T, prop *Properties) string {
 
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 	prop := setUpTestInstance()
-	prop.Set(KEY, VALUE)
-	if got := prop.Get(KEY); got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertSetAndGetBack(t, prop, KEY, VALUE)
 }
 
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
