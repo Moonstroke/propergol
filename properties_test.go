@@ -24,8 +24,8 @@ func assertSetAndGetBackSame(t *testing.T, key, value string) {
 	}
 }
 
-func loadFromString(t *testing.T, prop *Properties) {
-	e := prop.Load(bufio.NewReader(strings.NewReader(REPR)))
+func loadFromString(t *testing.T, prop *Properties, data string) {
+	e := prop.Load(bufio.NewReader(strings.NewReader(data)))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -65,7 +65,7 @@ func TestPropertiesAcceptValuesWithSeparators(t *testing.T) {
 
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	prop := setUpTestInstance()
-	loadFromString(t, prop)
+	loadFromString(t, prop, REPR)
 	if got := prop.Get(KEY); got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
