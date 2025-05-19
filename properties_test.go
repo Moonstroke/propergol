@@ -71,6 +71,30 @@ func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadIgnoresLeadingWhitespace(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, " \t"+REPR)
+	if got := prop.Get(KEY); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
+	}
+}
+
+func TestPropertiesLoadIgnoresTrailingWhitespace(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, REPR+" \t")
+	if got := prop.Get(KEY); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
+	}
+}
+
+func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, KEY+" = "+VALUE)
+	if got := prop.Get(KEY); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
+	}
+}
+
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
