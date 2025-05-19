@@ -50,11 +50,18 @@ func (p *Properties) Load(*bufio.Reader) error {
  */
 func (p *Properties) Store(writer *bufio.Writer) error {
 	for key, val := range p.values {
-		writer.WriteString(key)
-		writer.WriteByte('=')
-		writer.WriteString(val)
-		writer.WriteByte('\n')
-		// TODO check errors
+		if _, e := writer.WriteString(key); e != nil {
+			return e
+		}
+		if e := writer.WriteByte('='); e != nil {
+			return e
+		}
+		if _, e := writer.WriteString(val); e != nil {
+			return e
+		}
+		if e := writer.WriteByte('\n'); e != nil {
+			return e
+		}
 	}
 	return nil
 }
