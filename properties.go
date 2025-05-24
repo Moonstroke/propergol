@@ -3,6 +3,7 @@ package properties
 import (
 	"bufio"
 	"errors"
+	"strings"
 )
 
 /*
@@ -41,8 +42,20 @@ func (p *Properties) Get(key string) string {
 /*
  * Parse properties in text form from the given reader.
  */
-func (p *Properties) Load(*bufio.Reader) error {
-	return errors.New("not implemented") // TODO
+func (p *Properties) Load(reader *bufio.Reader) error {
+	s := bufio.NewScanner(reader)
+	for s.Scan() {
+		// TODO count line numbers
+		line := s.Text()
+		// TODO append() next line(s) if wrapped
+		// TODO cut around '=' and Set()
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			return errors.New("invalid property definition: no separator")
+		}
+		p.Set(key, value)
+	}
+	return s.Err()
 }
 
 /*
