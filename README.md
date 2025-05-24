@@ -13,6 +13,8 @@ text file, parsed as the application loads.
 Properties are identified by their key; the latter will be unique per each
 `Properties` instance (and should be so per application, too).
 
+TODO mention forbidden characters in key/value (equals sign, colon, spaces...)
+
 Externalizing the properties from the code has multiple advantages: properties
 can be modified without having to recompile the code (which can prove extremely
 valuable in time-sensitive situations, for example an urgent production patch),
@@ -64,6 +66,27 @@ usually there as a result of manual error.
 
 Likewise, blank lines between properties are allowed. They can be useful to
 group definitions of semantically-related properties.
+
+### Line wrapping
+
+If a line length limit is to be enforced, and some properties are longer, it is
+possible to break the property definition over several lines, by ending the
+initial line with a single back slash character. When parsed, the two lines are
+merged back and the backslash, along with any leading whitespace on the next
+line, is discarded. This means that any whitespace that is intended to be part
+of the reconstituted property has to be placed before the break.
+Both key and values can be split over multiple lines this way.
+
+    # In this example, the line length is
+    # limited to 40 character
+    username_translation.en_US=Username
+    # Actual value after reconstruction:
+    # “Nome utente”
+    username_translation.it_IT=Nome \
+                               utente
+    # Actual value: “Nom d’utilisateur”
+    username_translation.fr_FR=Nom d’utili\
+                               sateur
 
 ### Comments
 
