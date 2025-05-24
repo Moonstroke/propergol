@@ -88,6 +88,14 @@ Both key and values can be split over multiple lines this way.
     username_translation.fr_FR=Nom d’utili\
                                sateur
 
+To include a literal backslash in the property without it being interpreted as a
+line break, it must be escaped from interpretation by doubling it:
+
+    # This results in the value “C:\Program Files\”, and not
+    # “C:\Program Files\unix_install_dir=/usr/bin/”
+    win_install_dir=C:\Program Files\\
+    unix_install_dir=/usr/bin/
+
 ### Comments
 
 Lines whose first non-whitespace character is a hash sign are ignored by the
