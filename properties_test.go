@@ -81,7 +81,7 @@ func TestPropertiesLoadIgnoresLeadingWhitespace(t *testing.T) {
 
 func TestPropertiesLoadIgnoresTrailingWhitespace(t *testing.T) {
 	prop := setUpTestInstance()
-	loadFromString(t, prop, REPR+" \t")
+	loadFromString(t, prop, KEY+"="+VALUE+" \t")
 	if got := prop.Get(KEY); got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
