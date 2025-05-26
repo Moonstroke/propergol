@@ -48,12 +48,11 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 		// TODO count line numbers
 		line := s.Text()
 		// TODO append() next line(s) if wrapped
-		// TODO cut around '=' and Set()
 		key, value, ok := strings.Cut(line, "=")
 		if !ok {
 			return errors.New("invalid property definition: no separator")
 		}
-		p.Set(key, value)
+		p.Set(strings.TrimSpace(key), strings.TrimSpace(value))
 	}
 	return s.Err()
 }
