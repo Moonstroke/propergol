@@ -157,3 +157,25 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 		t.Fatal("Expected: " + expected + "; got: " + stored)
 	}
 }
+
+func TestRoundTripStoreThenLoad(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "key:with=special chars\tin#it\\"
+	value := "value:with=special chars\tas#well"
+	prop.Set(key, value)
+	repr := storeToString(t, prop)
+	prop2 := setUpTestInstance()
+	loadFromString(t, prop2, repr)
+	if got := prop2.Get(key); got != value {
+		t.Fatal("Expected: " + value + ", got: " + got)
+	}
+}
+
+func TestRoundTripLoadThenStore(t *testing.T) {
+	prop := setUpTestInstance()
+	repr := "key:with\\=special chars\tin#it=value:with=special chars\tas#well\n"
+	loadFromString(t, prop, repr)
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatal("Expected: " + repr + ", got: " + stored)
+	}
+}
