@@ -95,6 +95,15 @@ func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := `key with\=separator`
+	loadFromString(t, prop, key+"="+VALUE)
+	if got := prop.Get("key with=separator"); got != VALUE {
+		t.Fatal("Expected: " + VALUE + "; got: " + got)
+	}
+}
+
 func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
 	prop := setUpTestInstance()
 	value := "value broken and indented"
@@ -119,5 +128,14 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop.Set(KEY, VALUE)
 	if stored := storeToString(t, prop); stored != REPR {
 		t.Fatal("Expected: " + REPR + "; got: " + stored)
+	}
+}
+
+func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set("key with=separator", VALUE)
+	expected := `key with\=separator=` + VALUE
+	if stored := storeToString(t, prop); stored != expected {
+		t.Fatal("Expected: " + expected + "; got: " + stored)
 	}
 }
