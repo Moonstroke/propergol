@@ -47,7 +47,13 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 	for s.Scan() {
 		// TODO count line numbers
 		line := s.Text()
-		// TODO append() next line(s) if wrapped
+		for line[len(line)-1] == '\\' {
+			if !s.Scan() {
+				return errors.New("invalid property definition: no continuation line")
+			}
+			contLine := s.Text()
+			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
+		}
 		key, value, ok := strings.Cut(line, "=")
 		if !ok {
 			return errors.New("invalid property definition: no separator")
