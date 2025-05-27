@@ -95,6 +95,25 @@ func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
+	prop := setUpTestInstance()
+	value := "value broken and indented"
+	loadFromString(t, prop,
+		KEY+`=value broken \
+		      and indented`)
+	if got := prop.Get(KEY); got != value {
+		t.Fatal("Expected: " + value + "; got: " + got)
+	}
+}
+
+func TestPropertiesLoadFailsOnWrappedLineWoCont(t *testing.T) {
+	prop := setUpTestInstance()
+	e := prop.Load(bufio.NewReader(strings.NewReader(KEY + `=value broken\`)))
+	if e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
+
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
