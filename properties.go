@@ -33,7 +33,7 @@ func (p *Properties) Set(key string, value string) {
 
 /*
  * Retrieve the value of the property with the specified key.
- * If there is no property with this key, nil is returned.
+ * If there is no property with this key, the empty string is returned.
  */
 func (p *Properties) Get(key string) string {
 	return p.values[key]
