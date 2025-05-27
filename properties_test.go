@@ -123,6 +123,24 @@ func TestPropertiesLoadFailsOnWrappedLineWoCont(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadIgnoresComments(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "# " + KEY
+	loadFromString(t, prop, key+"="+VALUE)
+	if got := prop.Get(KEY); got != "" {
+		t.Fatal(`Expected: ""; got: ` + got)
+	}
+}
+
+func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
+	prop := setUpTestInstance()
+	value := VALUE + " # not a comment"
+	loadFromString(t, prop, KEY+"="+value)
+	if got := prop.Get(KEY); got != value {
+		t.Fatal("Expected: " + value + "; got: " + got)
+	}
+}
+
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
