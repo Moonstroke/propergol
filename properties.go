@@ -59,7 +59,7 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 		if !ok {
 			return errors.New("invalid property definition: no separator")
 		}
-		p.Set(strings.TrimSpace(key), strings.TrimSpace(value))
+		p.Set(strings.Trim(key, " \t"), strings.Trim(value, " \t"))
 	}
 	return s.Err()
 }
