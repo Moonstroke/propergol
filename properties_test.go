@@ -19,7 +19,7 @@ func setUpTestInstance() *Properties {
 func assertSetAndGetBackSame(t *testing.T, key, value string) {
 	prop := setUpTestInstance()
 	prop.Set(key, value)
-	if got := prop.Get(key); got != value {
+	if got, present := prop.Get(key); !present || got != value {
 		t.Fatal("For key " + key + `: expected value "` + value + `", got "` + got + `"`)
 	}
 }
@@ -66,7 +66,7 @@ func TestPropertiesAcceptValuesWithSeparators(t *testing.T) {
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, REPR)
-	if got := prop.Get(KEY); got != VALUE {
+	if got, present := prop.Get(KEY); !present || got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
@@ -74,7 +74,7 @@ func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 func TestPropertiesLoadIgnoresLeadingWhitespace(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, " \t"+REPR)
-	if got := prop.Get(KEY); got != VALUE {
+	if got, present := prop.Get(KEY); !present || got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
@@ -82,7 +82,7 @@ func TestPropertiesLoadIgnoresLeadingWhitespace(t *testing.T) {
 func TestPropertiesLoadIgnoresTrailingWhitespace(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, KEY+"="+VALUE+" \t")
-	if got := prop.Get(KEY); got != VALUE {
+	if got, present := prop.Get(KEY); !present || got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
@@ -90,7 +90,7 @@ func TestPropertiesLoadIgnoresTrailingWhitespace(t *testing.T) {
 func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, KEY+" = "+VALUE)
-	if got := prop.Get(KEY); got != VALUE {
+	if got, present := prop.Get(KEY); !present || got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
@@ -99,7 +99,7 @@ func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	key := `key with\=separator`
 	loadFromString(t, prop, key+"="+VALUE)
-	if got := prop.Get("key with=separator"); got != VALUE {
+	if got, present := prop.Get("key with=separator"); !present || got != VALUE {
 		t.Fatal("Expected: " + VALUE + "; got: " + got)
 	}
 }
@@ -110,7 +110,7 @@ func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
 	loadFromString(t, prop,
 		KEY+`=value broken \
 		      and indented`)
-	if got := prop.Get(KEY); got != value {
+	if got, present := prop.Get(KEY); !present || got != value {
 		t.Fatal("Expected: " + value + "; got: " + got)
 	}
 }
@@ -127,8 +127,8 @@ func TestPropertiesLoadIgnoresComments(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, key+"="+VALUE)
-	if got := prop.Get(KEY); got != "" {
-		t.Fatal(`Expected: ""; got: ` + got)
+	if _, present := prop.Get(KEY); present {
+		t.Fatal("Expected: absent; got: present")
 	}
 }
 
@@ -136,7 +136,7 @@ func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
 	prop := setUpTestInstance()
 	value := VALUE + " # not a comment"
 	loadFromString(t, prop, KEY+"="+value)
-	if got := prop.Get(KEY); got != value {
+	if got, present := prop.Get(KEY); !present || got != value {
 		t.Fatal("Expected: " + value + "; got: " + got)
 	}
 }
@@ -166,7 +166,7 @@ func TestRoundTripStoreThenLoad(t *testing.T) {
 	repr := storeToString(t, prop)
 	prop2 := setUpTestInstance()
 	loadFromString(t, prop2, repr)
-	if got := prop2.Get(key); got != value {
+	if got, present := prop2.Get(key); !present || got != value {
 		t.Fatal("Expected: " + value + ", got: " + got)
 	}
 }
