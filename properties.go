@@ -49,6 +49,7 @@ func splitLine(line string) (string, string, bool) {
 		if c == '\\' {
 			escaped = true
 		} else if escaped {
+			// TODO check if c is in white list ('\\', '=', others?)
 			builder.WriteRune(c)
 			escaped = false
 		} else if c == '=' && inKey {
@@ -59,6 +60,10 @@ func splitLine(line string) (string, string, bool) {
 		} else {
 			builder.WriteRune(c)
 		}
+	}
+	if inKey {
+		// No separator found: illegal definition. Return what we can anyway
+		return builder.String(), "", false
 	}
 	return key, builder.String(), true
 }
