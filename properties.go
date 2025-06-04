@@ -40,6 +40,10 @@ func (p *Properties) Get(key string) (string, bool) {
 	return val, present
 }
 
+func splitLine(line string) (string, string, bool) {
+	return strings.Cut(line, "=") // TODO cut around first non-escaped separator
+}
+
 /*
  * Parse properties in text form from the given reader.
  */
@@ -55,7 +59,7 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 			contLine := s.Text()
 			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
 		}
-		key, value, ok := strings.Cut(line, "=")
+		key, value, ok := splitLine(line)
 		if !ok {
 			return errors.New("invalid property definition: no separator")
 		}
@@ -64,18 +68,26 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 	return s.Err()
 }
 
+func escapeKey(key string) string {
+	return key // TODO escape separators, backslashes, line breaks
+}
+
+func escapeValue(value string) string {
+	return value // TODO escape backslashes, line breaks
+}
+
 /*
  * Output the properties in text form to the given writer.
  */
 func (p *Properties) Store(writer *bufio.Writer) error {
 	for key, val := range p.values {
-		if _, e := writer.WriteString(key); e != nil {
+		if _, e := writer.WriteString(escapeKey(key)); e != nil {
 			return e
 		}
 		if e := writer.WriteByte('='); e != nil {
 			return e
 		}
-		if _, e := writer.WriteString(val); e != nil {
+		if _, e := writer.WriteString(escapeValue(val)); e != nil {
 			return e
 		}
 		if e := writer.WriteByte('\n'); e != nil {
