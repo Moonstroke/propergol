@@ -127,7 +127,7 @@ func TestPropertiesLoadIgnoresComments(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, key+"="+VALUE)
-	if _, present := prop.Get(KEY); present {
+	if _, present := prop.Get(key); present {
 		t.Fatal("Expected: absent; got: present")
 	}
 }
@@ -152,7 +152,7 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set("key with=separator", VALUE)
-	expected := `key with\=separator=` + VALUE
+	expected := `key with\=separator=` + VALUE + "\n"
 	if stored := storeToString(t, prop); stored != expected {
 		t.Fatal("Expected: " + expected + "; got: " + stored)
 	}
