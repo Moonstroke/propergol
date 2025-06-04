@@ -41,7 +41,32 @@ func (p *Properties) Get(key string) (string, bool) {
 }
 
 func splitLine(line string) (string, string, bool) {
-	return strings.Cut(line, "=") // TODO cut around first non-escaped separator
+	key := strings.Builder{}
+	val := strings.Builder{}
+	escaped := false
+	inKey := true
+	for _, c := range line {
+		if c == '\\' {
+			escaped = true
+		} else if escaped {
+			if inKey {
+				key.WriteRune(c)
+			} else {
+				val.WriteRune(c)
+			}
+			escaped = false
+		} else if c == '=' && inKey {
+			inKey = false
+		} else {
+			if inKey {
+				key.WriteRune(c)
+			} else {
+				val.WriteRune(c)
+			}
+		}
+
+	}
+	return key.String(), val.String(), true
 }
 
 /*
