@@ -62,7 +62,7 @@ func splitLine(line string) (string, string, bool) {
 		}
 	}
 	if inKey {
-		// No separator found: illegal definition. Return what we can anyway
+		// No separator found: ill-formed definition. Return what we can anyway
 		return builder.String(), "", false
 	}
 	return key, builder.String(), true
