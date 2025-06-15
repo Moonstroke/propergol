@@ -9,7 +9,7 @@ import (
 const (
 	KEY   = "key"
 	VALUE = "value"
-	REPR  = KEY + "=" + VALUE + "\n"
+	REPR  = KEY + "=" + VALUE
 )
 
 func setUpTestInstance() *Properties {
@@ -40,7 +40,8 @@ func storeToString(t *testing.T, prop *Properties) string {
 	}
 	/* Ensure that the text is passed down to the string writer */
 	bufWriter.Flush()
-	return stringWriter.String()
+	repr := stringWriter.String()
+	return repr[:len(repr)-1] /* Trim trailing newline */
 }
 
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
@@ -152,7 +153,7 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set("key with=separator", VALUE)
-	expected := `key with\=separator=` + VALUE + "\n"
+	expected := `key with\=separator=` + VALUE
 	if stored := storeToString(t, prop); stored != expected {
 		t.Fatal("Expected: " + expected + "; got: " + stored)
 	}
@@ -173,7 +174,7 @@ func TestRoundTripStoreThenLoad(t *testing.T) {
 
 func TestRoundTripLoadThenStore(t *testing.T) {
 	prop := setUpTestInstance()
-	repr := "key:with\\=special chars\tin#it=value:with=special chars\tas#well\n"
+	repr := "key:with\\=special chars\tin#it=value:with=special chars\tas#well"
 	loadFromString(t, prop, repr)
 	if stored := storeToString(t, prop); stored != repr {
 		t.Fatal("Expected: " + repr + ", got: " + stored)
