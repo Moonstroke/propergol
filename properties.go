@@ -84,11 +84,11 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 }
 
 func escapeKey(key string) string {
-	return key // TODO escape separators, backslashes, line breaks
+	return escapeValue(strings.ReplaceAll(key, "=", "\\="))
 }
 
 func escapeValue(value string) string {
-	return value // TODO escape backslashes, line breaks
+	return strings.ReplaceAll(strings.ReplaceAll(value, "\\", "\\\\"), "\n", "\\\n")
 }
 
 // Output the properties in text form to the given writer.
