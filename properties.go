@@ -68,10 +68,16 @@ func (p *Properties) Load(reader io.Reader) error {
 	for s.Scan() {
 		// TODO count line numbers
 		line := s.Text()
-		// Comment line => ignored. TODO handle leading indentation
-		if line[0] == '#' {
+		// Skip leading indentation
+		startIndex := 0
+		for line[startIndex] == ' ' || line[startIndex] == '\t' {
+			startIndex++
+		}
+		// Comment line => ignored
+		if line[startIndex] == '#' {
 			continue
 		}
+		line = line[startIndex:]
 		for line[len(line)-1] == '\\' {
 			if !s.Scan() {
 				return errors.New("invalid property definition: no continuation line")
@@ -83,7 +89,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		if !ok {
 			return errors.New("invalid property definition: no separator")
 		}
-		p.Set(strings.Trim(key, " \t"), strings.Trim(value, " \t"))
+		p.Set(strings.TrimRight(key, " \t"), strings.Trim(value, " \t"))
 	}
 	return s.Err()
 }
