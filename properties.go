@@ -67,6 +67,10 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 	for s.Scan() {
 		// TODO count line numbers
 		line := s.Text()
+		// Comment line => ignored. TODO handle leading indentation
+		if line[0] == '#' {
+			continue
+		}
 		for line[len(line)-1] == '\\' {
 			if !s.Scan() {
 				return errors.New("invalid property definition: no continuation line")
