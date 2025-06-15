@@ -39,12 +39,12 @@ func splitLine(line string) (string, string, bool) {
 	escaped := false
 	inKey := true
 	for _, c := range line {
-		if c == '\\' {
-			escaped = true
-		} else if escaped {
+		if escaped {
 			// TODO check if c is in white list ('\\', '=', others?)
 			builder.WriteRune(c)
 			escaped = false
+		} else if c == '\\' {
+			escaped = true
 		} else if c == '=' && inKey {
 			// Actual separator met. Finalize the key and prepare to build the value
 			key = builder.String()
