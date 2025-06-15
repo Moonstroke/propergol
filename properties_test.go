@@ -129,6 +129,15 @@ func TestPropertiesLoadIgnoresComments(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadIgnoresIndentedComments(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "# " + KEY
+	loadFromString(t, prop, " \t "+key+"="+VALUE)
+	if _, present := prop.Get(key); present {
+		t.Fatal("Expected: absent; got: present")
+	}
+}
+
 func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
 	prop := setUpTestInstance()
 	value := VALUE + " # not a comment"
