@@ -83,24 +83,18 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 	return s.Err()
 }
 
-func escapeKey(key string) string {
-	return escapeValue(strings.ReplaceAll(key, "=", "\\="))
-}
-
-func escapeValue(value string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(value, "\\", "\\\\"), "\n", "\\\n")
-}
-
 // Output the properties in text form to the given writer.
 func (p *Properties) Store(writer *bufio.Writer) error {
+	keyEscaper := strings.NewReplacer("=", "\\=", "\\", "\\\\", "\n", "\\\n")
+	valueEscaper := strings.NewReplacer("\\", "\\\\", "\n", "\\\n")
 	for key, val := range p.values {
-		if _, e := writer.WriteString(escapeKey(key)); e != nil {
+		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
 		}
 		if e := writer.WriteByte('='); e != nil {
 			return e
 		}
-		if _, e := writer.WriteString(escapeValue(val)); e != nil {
+		if _, e := valueEscaper.WriteString(writer, val); e != nil {
 			return e
 		}
 		if e := writer.WriteByte('\n'); e != nil {
