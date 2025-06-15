@@ -1,3 +1,4 @@
+// Package properties provides a structure that centralizes and manipulates application properties.
 package properties
 
 import (
@@ -6,35 +7,27 @@ import (
 	"strings"
 )
 
-/*
- * This structure represents a mapping of keys to values.
- * It is intended to be used to centralize configuration data of an application.
- * The property keys and values are represented as string objects.
- */
+// This structure represents a mapping of keys to values.
+// It is intended to be used to centralize configuration data of an application.
+// The property keys and values are represented as string objects.
 type Properties struct {
 	values map[string]string
 }
 
-/*
- * Create an empty instance of the Properties structure.
- */
+// Create an empty instance of the Properties structure.
 func New() *Properties {
 	return &Properties{make(map[string]string)}
 }
 
-/*
- * Assign the given value to the property with the specified key.
- * If no property with this key exists, it is added;
- * otherwise, the value is replaced by the one given and the former value is discarded.
- */
+// Assign the given value to the property with the specified key.
+// If no property with this key exists, it is added;
+// otherwise, the value is replaced by the one given and the former value is discarded.
 func (p *Properties) Set(key string, value string) {
 	p.values[key] = value
 }
 
-/*
- * Retrieve the value of the property with the specified key.
- * If there is no property with this key, the empty string is returned.
- */
+// Retrieve the value of the property with the specified key.
+// If there is no property with this key, the empty string is returned.
 func (p *Properties) Get(key string) (string, bool) {
 	val, present := p.values[key]
 	return val, present
@@ -68,9 +61,7 @@ func splitLine(line string) (string, string, bool) {
 	return key, builder.String(), true
 }
 
-/*
- * Parse properties in text form from the given reader.
- */
+// Parse properties in text form from the given reader.
 func (p *Properties) Load(reader *bufio.Reader) error {
 	s := bufio.NewScanner(reader)
 	for s.Scan() {
@@ -100,9 +91,7 @@ func escapeValue(value string) string {
 	return value // TODO escape backslashes, line breaks
 }
 
-/*
- * Output the properties in text form to the given writer.
- */
+// Output the properties in text form to the given writer.
 func (p *Properties) Store(writer *bufio.Writer) error {
 	for key, val := range p.values {
 		if _, e := writer.WriteString(escapeKey(key)); e != nil {
