@@ -4,6 +4,7 @@ package properties
 import (
 	"bufio"
 	"errors"
+	"io"
 	"strings"
 )
 
@@ -62,7 +63,7 @@ func splitLine(line string) (string, string, bool) {
 }
 
 // Parse properties in text form from the given reader.
-func (p *Properties) Load(reader *bufio.Reader) error {
+func (p *Properties) Load(reader io.Reader) error {
 	s := bufio.NewScanner(reader)
 	for s.Scan() {
 		// TODO count line numbers
@@ -88,20 +89,20 @@ func (p *Properties) Load(reader *bufio.Reader) error {
 }
 
 // Output the properties in text form to the given writer.
-func (p *Properties) Store(writer *bufio.Writer) error {
+func (p *Properties) Store(writer io.Writer) error {
 	keyEscaper := strings.NewReplacer("=", "\\=", "\\", "\\\\", "\n", "\\\n")
 	valueEscaper := strings.NewReplacer("\\", "\\\\", "\n", "\\\n")
 	for key, val := range p.values {
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
 		}
-		if e := writer.WriteByte('='); e != nil {
+		if _, e := writer.Write([]byte{'='}); e != nil {
 			return e
 		}
 		if _, e := valueEscaper.WriteString(writer, val); e != nil {
 			return e
 		}
-		if e := writer.WriteByte('\n'); e != nil {
+		if _, e := writer.Write([]byte{'\n'}); e != nil {
 			return e
 		}
 	}
