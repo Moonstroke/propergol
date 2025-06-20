@@ -34,7 +34,7 @@ func (p *Properties) Get(key string) (string, bool) {
 	return val, present
 }
 
-func splitLine(line string) (string, string, bool) {
+func splitLine(line string) (string, string, error) {
 	var key string
 	builder := strings.Builder{}
 	escaped := false
@@ -57,9 +57,9 @@ func splitLine(line string) (string, string, bool) {
 	}
 	if inKey {
 		// No separator found: ill-formed definition. Return what we can anyway
-		return builder.String(), "", false
+		return builder.String(), "", errors.New("invalid property definition: no separator")
 	}
-	return key, builder.String(), true
+	return key, builder.String(), nil
 }
 
 // Parse properties in text form from the given reader.
@@ -85,9 +85,9 @@ func (p *Properties) Load(reader io.Reader) error {
 			contLine := s.Text()
 			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
 		}
-		key, value, ok := splitLine(line)
-		if !ok {
-			return errors.New("invalid property definition: no separator")
+		key, value, err := splitLine(line)
+		if err != nil {
+			return err
 		}
 		p.Set(strings.TrimRight(key, " \t"), strings.Trim(value, " \t"))
 	}
