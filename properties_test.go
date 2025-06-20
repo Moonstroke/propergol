@@ -147,6 +147,24 @@ func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "illegal\\ escape-sequence"
+	e := prop.Load(strings.NewReader(key + "=" + VALUE))
+	if e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
+
+func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	value := "illegal\\=escape-sequence"
+	e := prop.Load(strings.NewReader(KEY + "=" + value))
+	if e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
+
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
