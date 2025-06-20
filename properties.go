@@ -3,7 +3,6 @@ package properties
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"strings"
 )
@@ -34,6 +33,14 @@ func (p *Properties) Get(key string) (string, bool) {
 	return val, present
 }
 
+type propDefError struct {
+	message string
+}
+
+func (e propDefError) Error() string {
+	return "invalid property definition: " + e.message
+}
+
 func splitLine(line string) (string, string, error) {
 	var key string
 	builder := strings.Builder{}
@@ -42,7 +49,7 @@ func splitLine(line string) (string, string, error) {
 	for _, c := range line {
 		if escaped {
 			if !(c == '\\' || inKey && c == '=') {
-				return "", "", errors.New("illegal escape sequence: \\" + string(c))
+				return "", "", propDefError{"illegal escape sequence \\" + string(c)}
 			}
 			builder.WriteRune(c)
 			escaped = false
@@ -59,7 +66,7 @@ func splitLine(line string) (string, string, error) {
 	}
 	if inKey {
 		// No separator found: ill-formed definition. Return what we can anyway
-		return builder.String(), "", errors.New("invalid property definition: no separator")
+		return builder.String(), "", propDefError{"no separator"}
 	}
 	return key, builder.String(), nil
 }
@@ -82,7 +89,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		line = line[startIndex:]
 		for line[len(line)-1] == '\\' {
 			if !s.Scan() {
-				return errors.New("invalid property definition: no continuation line")
+				return propDefError{"no continuation line"}
 			}
 			contLine := s.Text()
 			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
