@@ -41,7 +41,9 @@ func splitLine(line string) (string, string, error) {
 	inKey := true
 	for _, c := range line {
 		if escaped {
-			// TODO check if c is in white list ('\\', '=', others?)
+			if !(c == '\\' || inKey && c == '=') {
+				return "", "", errors.New("illegal escape sequence: \\" + string(c))
+			}
 			builder.WriteRune(c)
 			escaped = false
 		} else if c == '\\' {
