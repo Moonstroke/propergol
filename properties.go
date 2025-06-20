@@ -3,6 +3,7 @@ package properties
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -34,14 +35,15 @@ func (p *Properties) Get(key string) (string, bool) {
 }
 
 type propDefError struct {
-	message string
+	lineNumber uint
+	message    string
 }
 
 func (e propDefError) Error() string {
-	return "invalid property definition: " + e.message
+	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
-func splitLine(line string) (string, string, error) {
+func splitLine(lineNumber uint, line string) (string, string, error) {
 	var key string
 	builder := strings.Builder{}
 	escaped := false
@@ -49,7 +51,7 @@ func splitLine(line string) (string, string, error) {
 	for _, c := range line {
 		if escaped {
 			if !(c == '\\' || inKey && c == '=') {
-				return "", "", propDefError{"illegal escape sequence \\" + string(c)}
+				return "", "", propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
 			}
 			builder.WriteRune(c)
 			escaped = false
@@ -66,7 +68,7 @@ func splitLine(line string) (string, string, error) {
 	}
 	if inKey {
 		// No separator found: ill-formed definition. Return what we can anyway
-		return builder.String(), "", propDefError{"no separator"}
+		return builder.String(), "", propDefError{lineNumber, "no separator"}
 	}
 	return key, builder.String(), nil
 }
@@ -74,8 +76,9 @@ func splitLine(line string) (string, string, error) {
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	s := bufio.NewScanner(reader)
+	var lineNumber uint = 0
 	for s.Scan() {
-		// TODO count line numbers
+		lineNumber++
 		line := s.Text()
 		// Skip leading indentation
 		startIndex := 0
@@ -89,12 +92,14 @@ func (p *Properties) Load(reader io.Reader) error {
 		line = line[startIndex:]
 		for line[len(line)-1] == '\\' {
 			if !s.Scan() {
-				return propDefError{"no continuation line"}
+				return propDefError{lineNumber, "no continuation line"}
 			}
 			contLine := s.Text()
 			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
 		}
-		key, value, err := splitLine(line)
+		// FIXME lineNumber is the number of the continuation line if wrapped,
+		//       so it may be incorrect
+		key, value, err := splitLine(lineNumber, line)
 		if err != nil {
 			return err
 		}
