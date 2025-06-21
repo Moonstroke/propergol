@@ -50,8 +50,12 @@ func (p *Properties) Load(reader io.Reader) error {
 	var lineNumber uint = 1
 	var key string
 	builder := strings.Builder{}
+	// Indicates whether the scanner is currently parsing an escape sequence
 	escaped := false
+	// Indicates whether the current property member (key or value) is being parsed
+	// (i.e. if we are no longer scanning leading whitespace)
 	inMember := false
+	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
 	inKey := true
 	for s.Scan() {
 		var c rune
@@ -96,8 +100,10 @@ func (p *Properties) Load(reader io.Reader) error {
 		} else if !inMember && !inKey && c == '#' {
 			// (!inMember && !inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 			for t := s.Text(); s.Scan() && t != "\n"; {
+				// Consume comment line
 			}
 		} else if inMember || c != ' ' && c != '\t' {
+			// Skip leading whitespace
 			builder.WriteRune(c)
 			inMember = true
 		}
