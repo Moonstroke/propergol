@@ -108,6 +108,9 @@ func (p *Properties) Load(reader io.Reader) error {
 			inMember = true
 		}
 	}
+	if escaped {
+		return propDefError{lineNumber, "line wrapped without a continuation"}
+	}
 	// Process last line if no trailing EOL was found
 	if inMember {
 		if inKey {
