@@ -97,8 +97,8 @@ func (p *Properties) Load(reader io.Reader) error {
 			builder.Reset()
 			inKey = false
 			inMember = false
-		} else if !inMember && !inKey && c == '#' {
-			// (!inMember && !inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+		} else if !inMember && inKey && c == '#' {
+			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 			for t := s.Text(); s.Scan() && t != "\n"; {
 				// Consume comment line
 			}
