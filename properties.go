@@ -65,8 +65,9 @@ func (p *Properties) Load(reader io.Reader) error {
 				lineNumber++
 			} else if !(c == '\\' || inKey && c == '=') {
 				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
+			} else {
+				builder.WriteRune(c)
 			}
-			builder.WriteRune(c)
 			escaped = false
 		} else if c == '\\' {
 			escaped = true
