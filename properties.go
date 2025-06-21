@@ -80,7 +80,7 @@ func (p *Properties) Load(reader io.Reader) error {
 				// No separator found: ill-formed definition
 				return propDefError{lineNumber, "no separator"}
 			}
-			p.Set(strings.Trim(key, " \t"), strings.Trim(builder.String(), " \t"))
+			p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
 			builder.Reset()
 			inKey = true
 			inMember = false
@@ -108,7 +108,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			// No separator found: ill-formed definition
 			return propDefError{lineNumber, "no separator"}
 		}
-		p.Set(strings.TrimRight(key, " \t"), strings.Trim(builder.String(), " \t"))
+		p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
 	}
 	return s.Err()
 }
