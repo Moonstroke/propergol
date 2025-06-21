@@ -51,6 +51,7 @@ func (p *Properties) Load(reader io.Reader) error {
 	var key string
 	builder := strings.Builder{}
 	escaped := false
+	inMember := false
 	inKey := true
 	for s.Scan() {
 		var c rune
@@ -63,6 +64,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			if c == '\n' {
 				// Wrapped line
 				lineNumber++
+				inMember = false
 			} else if !(c == '\\' || inKey && c == '=') {
 				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
 			} else {
@@ -71,6 +73,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			escaped = false
 		} else if c == '\\' {
 			escaped = true
+			inMember = true
 		} else if c == '\n' {
 			// End of logical line
 			if inKey {
@@ -80,13 +83,16 @@ func (p *Properties) Load(reader io.Reader) error {
 			p.Set(strings.Trim(key, " \t"), strings.Trim(builder.String(), " \t"))
 			builder.Reset()
 			inKey = true
+			inMember = false
 		} else if c == '=' && inKey {
 			// Actual separator met. Finalize the key and prepare to build the value
 			key = builder.String()
 			builder.Reset()
 			inKey = false
-		} else {
+			inMember = false
+		} else if inMember || c != ' ' && c != '\t' {
 			builder.WriteRune(c)
+			inMember = true
 		}
 	}
 	if inKey {
