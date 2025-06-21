@@ -99,11 +99,14 @@ func (p *Properties) Load(reader io.Reader) error {
 			inMember = true
 		}
 	}
-	if inKey {
-		// No separator found: ill-formed definition
-		return propDefError{lineNumber, "no separator"}
+	// Process last line if no trailing EOL was found
+	if inMember {
+		if inKey {
+			// No separator found: ill-formed definition
+			return propDefError{lineNumber, "no separator"}
+		}
+		p.Set(strings.TrimRight(key, " \t"), strings.Trim(builder.String(), " \t"))
 	}
-	p.Set(strings.TrimRight(key, " \t"), strings.Trim(builder.String(), " \t"))
 	return s.Err()
 }
 
