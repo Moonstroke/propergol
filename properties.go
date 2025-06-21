@@ -85,6 +85,9 @@ func (p *Properties) Load(reader io.Reader) error {
 			inKey = true
 			inMember = false
 		} else if c == '=' && inKey {
+			if !inMember {
+				return propDefError{lineNumber, "empty key"}
+			}
 			// Actual separator met. Finalize the key and prepare to build the value
 			key = builder.String()
 			builder.Reset()
