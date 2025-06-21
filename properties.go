@@ -43,67 +43,81 @@ func (e propDefError) Error() string {
 	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
-func splitLine(lineNumber uint, line string) (string, string, error) {
+// Parse properties in text form from the given reader.
+func (p *Properties) Load(reader io.Reader) error {
+	s := bufio.NewScanner(reader)
+	s.Split(bufio.ScanRunes)
+	var lineNumber uint = 1
 	var key string
 	builder := strings.Builder{}
+	// Indicates whether the scanner is currently parsing an escape sequence
 	escaped := false
+	// Indicates whether the current property member (key or value) is being parsed
+	// (i.e. if we are no longer scanning leading whitespace)
+	inMember := false
+	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
 	inKey := true
-	for _, c := range line {
+	for s.Scan() {
+		var c rune
+		// string range iterates over runes. We just want the first one
+		for _, r := range s.Text() {
+			c = r
+			break
+		}
 		if escaped {
-			if !(c == '\\' || inKey && c == '=') {
-				return "", "", propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
+			if c == '\n' {
+				// Wrapped line
+				lineNumber++
+				inMember = false
+			} else if !(c == '\\' || inKey && c == '=') {
+				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
+			} else {
+				builder.WriteRune(c)
 			}
-			builder.WriteRune(c)
 			escaped = false
 		} else if c == '\\' {
 			escaped = true
+			inMember = true
+		} else if c == '\n' {
+			// End of logical line
+			if inKey {
+				// No separator found: ill-formed definition
+				return propDefError{lineNumber, "no separator"}
+			}
+			p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
+			builder.Reset()
+			inKey = true
+			inMember = false
 		} else if c == '=' && inKey {
+			if !inMember {
+				return propDefError{lineNumber, "empty key"}
+			}
 			// Actual separator met. Finalize the key and prepare to build the value
 			key = builder.String()
 			builder.Reset()
 			inKey = false
-		} else {
-			builder.WriteRune(c)
-		}
-	}
-	if inKey {
-		// No separator found: ill-formed definition. Return what we can anyway
-		return builder.String(), "", propDefError{lineNumber, "no separator"}
-	}
-	return key, builder.String(), nil
-}
-
-// Parse properties in text form from the given reader.
-func (p *Properties) Load(reader io.Reader) error {
-	s := bufio.NewScanner(reader)
-	var lineNumber uint = 0
-	for s.Scan() {
-		lineNumber++
-		line := s.Text()
-		// Skip leading indentation
-		startIndex := 0
-		for line[startIndex] == ' ' || line[startIndex] == '\t' {
-			startIndex++
-		}
-		// Comment line => ignored
-		if line[startIndex] == '#' {
-			continue
-		}
-		line = line[startIndex:]
-		for line[len(line)-1] == '\\' {
-			if !s.Scan() {
-				return propDefError{lineNumber, "no continuation line"}
+			inMember = false
+		} else if !inMember && inKey && c == '#' {
+			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+			for t := s.Text(); s.Scan() && t != "\n"; {
+				// Consume comment line
 			}
-			contLine := s.Text()
-			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
+		} else if inMember || c != ' ' && c != '\t' {
+			// Skip leading whitespace
+			builder.WriteRune(c)
+			inMember = true
 		}
-		// FIXME lineNumber is the number of the continuation line if wrapped,
-		//       so it may be incorrect
-		key, value, err := splitLine(lineNumber, line)
-		if err != nil {
-			return err
+	}
+	if escaped {
+		return propDefError{lineNumber, "line wrapped without a continuation"}
+	}
+	// Process last line if no trailing EOL was found
+	if inMember {
+		if inKey {
+			// No separator found: ill-formed definition
+			return propDefError{lineNumber, "no separator"}
 		}
-		p.Set(strings.TrimRight(key, " \t"), strings.Trim(value, " \t"))
+		p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
 	}
 	return s.Err()
 }
