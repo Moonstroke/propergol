@@ -46,55 +46,53 @@ func (e propDefError) Error() string {
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	s := bufio.NewScanner(reader)
-	var lineNumber uint = 0
+	s.Split(bufio.ScanRunes)
+	var lineNumber uint = 1
+	var key string
+	builder := strings.Builder{}
+	escaped := false
+	inKey := true
 	for s.Scan() {
-		lineNumber++
-		line := s.Text()
-		// Skip leading indentation
-		startIndex := 0
-		for line[startIndex] == ' ' || line[startIndex] == '\t' {
-			startIndex++
+		var c rune
+		// string range iterates over runes. We just want the first one
+		for _, r := range s.Text() {
+			c = r
+			break
 		}
-		// Comment line => ignored
-		if line[startIndex] == '#' {
-			continue
-		}
-		line = line[startIndex:]
-		for line[len(line)-1] == '\\' {
-			if !s.Scan() {
-				return propDefError{lineNumber, "no continuation line"}
+		if escaped {
+			if c == '\n' {
+				// Wrapped line
+				lineNumber++
+			} else if !(c == '\\' || inKey && c == '=') {
+				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
 			}
-			contLine := s.Text()
-			line = line[:len(line)-1] + strings.TrimLeft(contLine, " \t")
-		}
-		var key string
-		builder := strings.Builder{}
-		escaped := false
-		inKey := true
-		for _, c := range line {
-			if escaped {
-				if !(c == '\\' || inKey && c == '=') {
-					return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
-				}
-				builder.WriteRune(c)
-				escaped = false
-			} else if c == '\\' {
-				escaped = true
-			} else if c == '=' && inKey {
-				// Actual separator met. Finalize the key and prepare to build the value
-				key = builder.String()
-				builder.Reset()
-				inKey = false
-			} else {
-				builder.WriteRune(c)
+			builder.WriteRune(c)
+			escaped = false
+		} else if c == '\\' {
+			escaped = true
+		} else if c == '\n' {
+			// End of logical line
+			if inKey {
+				// No separator found: ill-formed definition
+				return propDefError{lineNumber, "no separator"}
 			}
+			p.Set(strings.Trim(key, " \t"), strings.Trim(builder.String(), " \t"))
+			builder.Reset()
+			inKey = true
+		} else if c == '=' && inKey {
+			// Actual separator met. Finalize the key and prepare to build the value
+			key = builder.String()
+			builder.Reset()
+			inKey = false
+		} else {
+			builder.WriteRune(c)
 		}
-		if inKey {
-			// No separator found: ill-formed definition
-			return propDefError{lineNumber, "no separator"}
-		}
-		p.Set(strings.TrimRight(key, " \t"), strings.Trim(builder.String(), " \t"))
 	}
+	if inKey {
+		// No separator found: ill-formed definition
+		return propDefError{lineNumber, "no separator"}
+	}
+	p.Set(strings.TrimRight(key, " \t"), strings.Trim(builder.String(), " \t"))
 	return s.Err()
 }
 
