@@ -37,6 +37,9 @@ func storeToString(t *testing.T, prop *Properties) string {
 		t.Fatal(e)
 	}
 	repr := stringWriter.String()
+	if len(repr) == 0 {
+		return ""
+	}
 	return repr[:len(repr)-1] /* Trim trailing newline */
 }
 
