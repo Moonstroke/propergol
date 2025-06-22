@@ -23,6 +23,25 @@ func assertSetAndGetBackSame(t *testing.T, key, value string) {
 	}
 }
 
+func assertGetExpected(t *testing.T, prop *Properties, key, expected string) {
+	if got, present := prop.Get(key); !present || got != expected {
+		t.Fatal("Expected: " + expected + "; got: " + got)
+	}
+}
+
+func assertGetAbsent(t *testing.T, prop *Properties, key string) {
+	if _, present := prop.Get(key); present {
+		t.Fatal("Expected: absent; got: present")
+	}
+}
+
+func assertLoadReturnsError(t *testing.T, prop *Properties, repr string) {
+	e := prop.Load(strings.NewReader(repr))
+	if e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
+
 func loadFromString(t *testing.T, prop *Properties, data string) {
 	e := prop.Load(strings.NewReader(data))
 	if e != nil {
@@ -66,53 +85,40 @@ func TestPropertiesAcceptValuesWithSeparators(t *testing.T) {
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, REPR)
-	if got, present := prop.Get(KEY); !present || got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, VALUE)
 }
 
 func TestPropertiesLoadIgnoresLeadingWhitespace(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, " \t"+REPR)
-	if got, present := prop.Get(KEY); !present || got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, VALUE)
 }
 
 func TestPropertiesLoadIgnoresTrailingWhitespace(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, KEY+"="+VALUE+" \t")
-	if got, present := prop.Get(KEY); !present || got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, VALUE)
 }
 
 func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, KEY+" = "+VALUE)
-	if got, present := prop.Get(KEY); !present || got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, VALUE)
 }
 
 func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	key := `key with\=separator`
 	loadFromString(t, prop, key+"="+VALUE)
-	if got, present := prop.Get("key with=separator"); !present || got != VALUE {
-		t.Fatal("Expected: " + VALUE + "; got: " + got)
-	}
+	assertGetExpected(t, prop, "key with=separator", VALUE)
 }
 
 func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
 	prop := setUpTestInstance()
-	value := "value broken and indented"
 	loadFromString(t, prop,
 		KEY+`=value broken \
 		      and indented`)
-	if got, present := prop.Get(KEY); !present || got != value {
-		t.Fatal("Expected: " + value + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, "value broken and indented")
 }
 
 func TestPropertiesLoadFailsOnWrappedLineWoCont(t *testing.T) {
@@ -127,45 +133,31 @@ func TestPropertiesLoadIgnoresComments(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, key+"="+VALUE)
-	if _, present := prop.Get(key); present {
-		t.Fatal("Expected: absent; got: present")
-	}
+	assertGetAbsent(t, prop, key)
 }
 
 func TestPropertiesLoadIgnoresIndentedComments(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, " \t "+key+"="+VALUE)
-	if _, present := prop.Get(key); present {
-		t.Fatal("Expected: absent; got: present")
-	}
+	assertGetAbsent(t, prop, key)
 }
 
 func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
 	prop := setUpTestInstance()
 	value := VALUE + " # not a comment"
 	loadFromString(t, prop, KEY+"="+value)
-	if got, present := prop.Get(KEY); !present || got != value {
-		t.Fatal("Expected: " + value + "; got: " + got)
-	}
+	assertGetExpected(t, prop, KEY, value)
 }
 
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 	prop := setUpTestInstance()
-	key := "illegal\\ escape-sequence"
-	e := prop.Load(strings.NewReader(key + "=" + VALUE))
-	if e == nil {
-		t.Fatal("Expected failure, but no error was raised")
-	}
+	assertLoadReturnsError(t, prop, "illegal\\ escape-sequence="+VALUE)
 }
 
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	prop := setUpTestInstance()
-	value := "illegal\\=escape-sequence"
-	e := prop.Load(strings.NewReader(KEY + "=" + value))
-	if e == nil {
-		t.Fatal("Expected failure, but no error was raised")
-	}
+	assertLoadReturnsError(t, prop, KEY+"=illegal\\=escape-sequence")
 }
 
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
@@ -193,9 +185,7 @@ func TestRoundTripStoreThenLoad(t *testing.T) {
 	repr := storeToString(t, prop)
 	prop2 := setUpTestInstance()
 	loadFromString(t, prop2, repr)
-	if got, present := prop2.Get(key); !present || got != value {
-		t.Fatal("Expected: " + value + ", got: " + got)
-	}
+	assertGetExpected(t, prop, key, value)
 }
 
 func TestRoundTripLoadThenStore(t *testing.T) {
