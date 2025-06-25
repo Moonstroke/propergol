@@ -43,6 +43,53 @@ func (e propDefError) Error() string {
 	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
+func processRune(c rune, s *bufio.Scanner, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey *bool) error {
+	if *escaped {
+		if c == '\n' {
+			// Wrapped line
+			*lineNumber++
+			*inMember = false
+		} else if !(c == '\\' || *inKey && c == '=') {
+			return propDefError{*lineNumber, "illegal escape sequence \\" + string(c)}
+		} else {
+			builder.WriteRune(c)
+		}
+		*escaped = false
+	} else if c == '\\' {
+		*escaped = true
+		*inMember = true
+	} else if c == '\n' {
+		// End of logical line
+		if *inKey {
+			// No separator found: ill-formed definition
+			return propDefError{*lineNumber, "no separator"}
+		}
+		p.Set(strings.TrimRight(*key, " \t"), strings.TrimRight(builder.String(), " \t"))
+		builder.Reset()
+		*inKey = true
+		*inMember = false
+	} else if c == '=' && *inKey {
+		if !*inMember {
+			return propDefError{*lineNumber, "empty key"}
+		}
+		// Actual separator met. Finalize the key and prepare to build the value
+		*key = builder.String()
+		builder.Reset()
+		*inKey = false
+		*inMember = false
+	} else if !*inMember && *inKey && c == '#' {
+		// (!*inMember && *inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+		for t := s.Text(); s.Scan() && t != "\n"; {
+			// Consume comment line
+		}
+	} else if *inMember || c != ' ' && c != '\t' {
+		// Skip leading whitespace
+		builder.WriteRune(c)
+		*inMember = true
+	}
+	return nil
+}
+
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	s := bufio.NewScanner(reader)
@@ -64,48 +111,8 @@ func (p *Properties) Load(reader io.Reader) error {
 			c = r
 			break
 		}
-		if escaped {
-			if c == '\n' {
-				// Wrapped line
-				lineNumber++
-				inMember = false
-			} else if !(c == '\\' || inKey && c == '=') {
-				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
-			} else {
-				builder.WriteRune(c)
-			}
-			escaped = false
-		} else if c == '\\' {
-			escaped = true
-			inMember = true
-		} else if c == '\n' {
-			// End of logical line
-			if inKey {
-				// No separator found: ill-formed definition
-				return propDefError{lineNumber, "no separator"}
-			}
-			p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
-			builder.Reset()
-			inKey = true
-			inMember = false
-		} else if c == '=' && inKey {
-			if !inMember {
-				return propDefError{lineNumber, "empty key"}
-			}
-			// Actual separator met. Finalize the key and prepare to build the value
-			key = builder.String()
-			builder.Reset()
-			inKey = false
-			inMember = false
-		} else if !inMember && inKey && c == '#' {
-			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
-			for t := s.Text(); s.Scan() && t != "\n"; {
-				// Consume comment line
-			}
-		} else if inMember || c != ' ' && c != '\t' {
-			// Skip leading whitespace
-			builder.WriteRune(c)
-			inMember = true
+		if err := processRune(c, s, p, &lineNumber, &key, &builder, &escaped, &inMember, &inKey); err != nil {
+			return err
 		}
 	}
 	if escaped {
