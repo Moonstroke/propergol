@@ -43,6 +43,22 @@ func (e propDefError) Error() string {
 	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
+// Holds data used while processing input
+type loadState struct {
+	lineNumber uint
+	// Retains the key of the current definition (empty before the separator has been found)
+	key string
+	// Used to construct each property member in turn
+	builder strings.Builder
+	// Indicates whether the scanner is currently parsing an escape sequence
+	escaped bool
+	// Indicates whether the current property member (key or value) is being parsed
+	// (i.e. if we are no longer scanning leading whitespace)
+	inMember bool
+	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
+	inKey bool
+}
+
 func processRune(c rune, s *bufio.Scanner, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey *bool) error {
 	if *escaped {
 		if c == '\n' {
