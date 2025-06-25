@@ -13,8 +13,6 @@ text file, parsed as the application loads.
 Properties are identified by their key; the latter will be unique per each
 `Properties` instance (and should be so per application, too).
 
-TODO mention forbidden characters in key/value (equals sign, colon, spaces...)
-
 Externalizing the properties from the code has multiple advantages: properties
 can be modified without having to recompile the code (which can prove extremely
 valuable in time-sensitive situations, for example an urgent production patch),
@@ -22,21 +20,36 @@ or supplied by users of the application for customized behavior; moreover, it
 adheres to the principle of separation of concerns, which facilitates design and
 maintenance.
 
+
+## Module interface
+
+The module defines a single structure, named `Properties`. Individual properties
+are accessed using the method `Get(string) (string, bool)` and defined using
+`Set(string, string)`. The methods `Load(io.Reader) error` and
+`Store(io.Writer) error` allow to interact with I/O objects (wrapping files,
+most of the time) to read (respectively write) property definitions.
+
+More technical details are available in the documentation embedded in [the
+source](properties.go).
+
 ## Reading properties files
 
-Properties are stored in text files. The name of such a file usually ends with
-the `.properties` extension. They are defined on dinsticnt lines, in the form:
+Properties are stored in text files, encoded in UTF-8. The name of such a file
+usually ends with the `.properties` extension, although this is not required.
+They are defined on distinct lines, in the form:
 
     key=value
 
 The equals sign separates the key from the value, while conveying the idea of
-an assignment (as is its purpose in many programming languages).
+an assignment (as is its purpose in many programming languages). This is the
+only separator that this module recognizes (namely, the colon has no special
+meaning).
 
 The key cannot be empty--functionally, this would rarely make sense; in the rare
 cases where it does, some other non-empty key would be at least as sensible, if
-not more.
-On the other hand, the value is allowed to be empty. In this case, the separator
-must still be present. Thus, this is how empty-valued properties are defined:
+not more. On the other hand, the value is allowed to be empty. In this case, the
+separator must still be present. Thus, this is how empty-valued properties are
+defined:
 
     key=
 
@@ -60,9 +73,9 @@ display:
     meat      = mutton
     dairy     = yogurt
 
-Whitespace *after* the value is also discarded, but it is not recommended to
-have any, as it has no utility and only takes up unnecessary space. It is
-usually there as a result of manual error.
+Whitespace *after* the value is also silently discarded, but it is not
+recommended to have any, as it has no utility and only takes up unnecessary
+space. It is usually there as a result of manual error.
 
 Likewise, blank lines between properties are allowed. They can be useful to
 group definitions of semantically-related properties.
