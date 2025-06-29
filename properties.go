@@ -42,6 +42,74 @@ func (e propDefError) Error() string {
 	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
+// Holds data used while processing input
+type loadState struct {
+	lineNumber uint
+	// Retains the key of the current definition (empty before the separator has been found)
+	key string
+	// Used to construct each property member in turn
+	builder strings.Builder
+	// Indicates whether the scanner is currently parsing an escape sequence
+	escaped bool
+	// Indicates whether the current property member (key or value) is being parsed
+	// (i.e. if we are no longer scanning leading whitespace)
+	inMember bool
+	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
+	inKey bool
+}
+
+func processRune(c byte, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey, skipLine *bool) error {
+	if *skipLine {
+		if c == '\n' {
+			*skipLine = false
+		}
+	} else if *escaped {
+		if c == '\n' {
+			// Wrapped line
+			*lineNumber++
+			*inMember = false
+		} else if !(c == '\\' || *inKey && c == '=') {
+			return propDefError{*lineNumber, "illegal escape sequence \\" + string(c)}
+		} else {
+			builder.WriteByte(c)
+		}
+		*escaped = false
+	} else if c == '\\' {
+		*escaped = true
+		*inMember = true
+	} else if c == '\n' {
+		// End of physical line (escaped line breaks already handled above)
+		// not in a member => blank or empty line: no property to add.
+		if *inMember {
+			if *inKey {
+				// No separator found: ill-formed definition
+				return propDefError{*lineNumber, "no separator"}
+			}
+			p.Set(strings.TrimRight(*key, " \t"), strings.TrimRight(builder.String(), " \t"))
+			builder.Reset()
+			*inKey = true
+			*inMember = false
+		}
+	} else if c == '=' && *inKey {
+		if !*inMember {
+			return propDefError{*lineNumber, "empty key"}
+		}
+		// Actual separator met. Finalize the key and prepare to build the value
+		*key = builder.String()
+		builder.Reset()
+		*inKey = false
+		*inMember = false
+	} else if !*inMember && *inKey && c == '#' {
+		// (!*inMember && *inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+		*skipLine = true
+	} else if *inMember || c != ' ' && c != '\t' {
+		// Skip leading whitespace
+		builder.WriteByte(c)
+		*inMember = true
+	}
+	return nil
+}
+
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1)
@@ -60,53 +128,8 @@ func (p *Properties) Load(reader io.Reader) error {
 	var err error
 	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
 		c := buffer[0]
-		if skipLine {
-			if c == '\n' {
-				skipLine = false
-			}
-		} else if escaped {
-			if c == '\n' {
-				// Wrapped line
-				lineNumber++
-				inMember = false
-			} else if !(c == '\\' || inKey && c == '=') {
-				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
-			} else {
-				builder.WriteByte(c)
-			}
-			escaped = false
-		} else if c == '\\' {
-			escaped = true
-			inMember = true
-		} else if c == '\n' {
-			// End of physical line (escaped line breaks already handled above)
-			// not in a member => blank or empty line: no property to add.
-			if inMember {
-				if inKey {
-					// No separator found: ill-formed definition
-					return propDefError{lineNumber, "no separator"}
-				}
-				p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
-				builder.Reset()
-				inKey = true
-				inMember = false
-			}
-		} else if c == '=' && inKey {
-			if !inMember {
-				return propDefError{lineNumber, "empty key"}
-			}
-			// Actual separator met. Finalize the key and prepare to build the value
-			key = builder.String()
-			builder.Reset()
-			inKey = false
-			inMember = false
-		} else if !inMember && inKey && c == '#' {
-			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
-			skipLine = true
-		} else if inMember || c != ' ' && c != '\t' {
-			// Skip leading whitespace
-			builder.WriteByte(c)
-			inMember = true
+		if err := processRune(c, p, &lineNumber, &key, &builder, &escaped, &inMember, &inKey, &skipLine); err != nil {
+			return err
 		}
 	}
 	if escaped {
