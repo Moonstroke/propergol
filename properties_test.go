@@ -106,6 +106,18 @@ func TestPropertiesLoadIgnoresWhitespaceAroundSeparator(t *testing.T) {
 	assertGetExpected(t, prop, KEY, VALUE)
 }
 
+func TestPropertiesLoadIgnoresEmptyLines(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, "\n\n"+REPR+"\n\n")
+	assertGetExpected(t, prop, KEY, VALUE)
+}
+
+func TestPropertiesLoadIgnoresBlankLines(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, "    \n\t  \n"+REPR+"\n\t \n  \t")
+	assertGetExpected(t, prop, KEY, VALUE)
+}
+
 func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	key := `key with\=separator`
