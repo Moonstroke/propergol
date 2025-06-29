@@ -2,7 +2,6 @@
 package properties
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -45,8 +44,7 @@ func (e propDefError) Error() string {
 
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
-	s := bufio.NewScanner(reader)
-	s.Split(bufio.ScanRunes)
+	buffer := make([]byte, 1)
 	var lineNumber uint = 1
 	var key string
 	builder := strings.Builder{}
@@ -57,13 +55,9 @@ func (p *Properties) Load(reader io.Reader) error {
 	inMember := false
 	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
 	inKey := true
-	for s.Scan() {
-		var c rune
-		// string range iterates over runes. We just want the first one
-		for _, r := range s.Text() {
-			c = r
-			break
-		}
+	var err error
+	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
+		c := buffer[0]
 		if escaped {
 			if c == '\n' {
 				// Wrapped line
@@ -72,7 +66,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			} else if !(c == '\\' || inKey && c == '=') {
 				return propDefError{lineNumber, "illegal escape sequence \\" + string(c)}
 			} else {
-				builder.WriteRune(c)
+				builder.WriteByte(c)
 			}
 			escaped = false
 		} else if c == '\\' {
@@ -99,12 +93,12 @@ func (p *Properties) Load(reader io.Reader) error {
 			inMember = false
 		} else if !inMember && inKey && c == '#' {
 			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
-			for t := s.Text(); s.Scan() && t != "\n"; {
+			for _, err := reader.Read(buffer); err == nil && buffer[0] != '\n'; _, err = reader.Read(buffer) {
 				// Consume comment line
 			}
 		} else if inMember || c != ' ' && c != '\t' {
 			// Skip leading whitespace
-			builder.WriteRune(c)
+			builder.WriteByte(c)
 			inMember = true
 		}
 	}
@@ -119,7 +113,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 		p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
 	}
-	return s.Err()
+	return err
 }
 
 // Output the properties in text form to the given writer.
