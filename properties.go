@@ -79,15 +79,18 @@ func (p *Properties) Load(reader io.Reader) error {
 			escaped = true
 			inMember = true
 		} else if c == '\n' {
-			// End of logical line
-			if inKey {
-				// No separator found: ill-formed definition
-				return propDefError{lineNumber, "no separator"}
+			// End of physical line (escaped line breaks already handled above)
+			// not in a member => blank or empty line: no property to add.
+			if inMember {
+				if inKey {
+					// No separator found: ill-formed definition
+					return propDefError{lineNumber, "no separator"}
+				}
+				p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
+				builder.Reset()
+				inKey = true
+				inMember = false
 			}
-			p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
-			builder.Reset()
-			inKey = true
-			inMember = false
 		} else if c == '=' && inKey {
 			if !inMember {
 				return propDefError{lineNumber, "empty key"}
