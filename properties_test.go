@@ -19,13 +19,13 @@ func assertSetAndGetBackSame(t *testing.T, key, value string) {
 	prop := setUpTestInstance()
 	prop.Set(key, value)
 	if got, present := prop.Get(key); !present || got != value {
-		t.Fatal("For key " + key + `: expected value "` + value + `", got "` + got + `"`)
+		t.Fatalf("For key %s: expected value %q, got %q", key, value, got)
 	}
 }
 
 func assertGetExpected(t *testing.T, prop *Properties, key, expected string) {
 	if got, present := prop.Get(key); !present || got != expected {
-		t.Fatal("Expected: " + expected + "; got: " + got)
+		t.Fatalf("Expected: %q; got %q", expected, got)
 	}
 }
 
