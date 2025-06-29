@@ -55,10 +55,16 @@ func (p *Properties) Load(reader io.Reader) error {
 	inMember := false
 	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
 	inKey := true
+	// Indicates whether we are currently reading a comment line (to be skipped)
+	skipLine := false
 	var err error
 	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
 		c := buffer[0]
-		if escaped {
+		if skipLine {
+			if c == '\n' {
+				skipLine = false
+			}
+		} else if escaped {
 			if c == '\n' {
 				// Wrapped line
 				lineNumber++
@@ -93,9 +99,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			inMember = false
 		} else if !inMember && inKey && c == '#' {
 			// (!inMember && inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
-			for _, err := reader.Read(buffer); err == nil && buffer[0] != '\n'; _, err = reader.Read(buffer) {
-				// Consume comment line
-			}
+			skipLine = true
 		} else if inMember || c != ' ' && c != '\t' {
 			// Skip leading whitespace
 			builder.WriteByte(c)
