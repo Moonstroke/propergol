@@ -56,9 +56,11 @@ type loadState struct {
 	inMember bool
 	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
 	inKey bool
+	// Indicates whether we are currently reading a comment line (to be skipped)
+	skipLine bool
 }
 
-func processRune(c byte, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey, skipLine *bool) error {
+func processByte(c byte, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey, skipLine *bool) error {
 	if *skipLine {
 		if c == '\n' {
 			*skipLine = false
@@ -127,8 +129,7 @@ func (p *Properties) Load(reader io.Reader) error {
 	skipLine := false
 	var err error
 	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
-		c := buffer[0]
-		if err := processRune(c, p, &lineNumber, &key, &builder, &escaped, &inMember, &inKey, &skipLine); err != nil {
+		if err := processByte(buffer[0], p, &lineNumber, &key, &builder, &escaped, &inMember, &inKey, &skipLine); err != nil {
 			return err
 		}
 	}
