@@ -113,6 +113,9 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 		p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
 	}
+	if err == io.EOF {
+		return nil
+	}
 	return err
 }
 
