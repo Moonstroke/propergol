@@ -61,11 +61,12 @@ type loadState struct {
 }
 
 func processByte(c byte, p *Properties, state *loadState) error {
-	if state.skipLine {
+	switch {
+	case state.skipLine:
 		if c == '\n' {
 			state.skipLine = false
 		}
-	} else if state.escaped {
+	case state.escaped:
 		if c == '\n' {
 			// Wrapped line
 			state.lineNumber++
@@ -76,10 +77,10 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.builder.WriteByte(c)
 		}
 		state.escaped = false
-	} else if c == '\\' {
+	case c == '\\':
 		state.escaped = true
 		state.inMember = true
-	} else if c == '\n' {
+	case c == '\n':
 		// End of physical line (escaped line breaks already handled above)
 		// not in a member => blank or empty line: no property to add.
 		if state.inMember {
@@ -92,7 +93,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.inKey = true
 			state.inMember = false
 		}
-	} else if c == '=' && state.inKey {
+	case c == '=' && state.inKey:
 		if !state.inMember {
 			return propDefError{state.lineNumber, "empty key"}
 		}
@@ -101,10 +102,10 @@ func processByte(c byte, p *Properties, state *loadState) error {
 		state.builder.Reset()
 		state.inKey = false
 		state.inMember = false
-	} else if !state.inMember && state.inKey && c == '#' {
+	case !state.inMember && state.inKey && c == '#':
 		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 		state.skipLine = true
-	} else if state.inMember || c != ' ' && c != '\t' {
+	case state.inMember || c != ' ' && c != '\t':
 		// Skip leading whitespace
 		state.builder.WriteByte(c)
 		state.inMember = true
