@@ -60,54 +60,54 @@ type loadState struct {
 	skipLine bool
 }
 
-func processByte(c byte, p *Properties, lineNumber *uint, key *string, builder *strings.Builder, escaped, inMember, inKey, skipLine *bool) error {
-	if *skipLine {
+func processByte(c byte, p *Properties, state *loadState) error {
+	if state.skipLine {
 		if c == '\n' {
-			*skipLine = false
+			state.skipLine = false
 		}
-	} else if *escaped {
+	} else if state.escaped {
 		if c == '\n' {
 			// Wrapped line
-			*lineNumber++
-			*inMember = false
-		} else if !(c == '\\' || *inKey && c == '=') {
-			return propDefError{*lineNumber, "illegal escape sequence \\" + string(c)}
+			state.lineNumber++
+			state.inMember = false
+		} else if !(c == '\\' || state.inKey && c == '=') {
+			return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
 		} else {
-			builder.WriteByte(c)
+			state.builder.WriteByte(c)
 		}
-		*escaped = false
+		state.escaped = false
 	} else if c == '\\' {
-		*escaped = true
-		*inMember = true
+		state.escaped = true
+		state.inMember = true
 	} else if c == '\n' {
 		// End of physical line (escaped line breaks already handled above)
 		// not in a member => blank or empty line: no property to add.
-		if *inMember {
-			if *inKey {
+		if state.inMember {
+			if state.inKey {
 				// No separator found: ill-formed definition
-				return propDefError{*lineNumber, "no separator"}
+				return propDefError{state.lineNumber, "no separator"}
 			}
-			p.Set(strings.TrimRight(*key, " \t"), strings.TrimRight(builder.String(), " \t"))
-			builder.Reset()
-			*inKey = true
-			*inMember = false
+			p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
+			state.builder.Reset()
+			state.inKey = true
+			state.inMember = false
 		}
-	} else if c == '=' && *inKey {
-		if !*inMember {
-			return propDefError{*lineNumber, "empty key"}
+	} else if c == '=' && state.inKey {
+		if !state.inMember {
+			return propDefError{state.lineNumber, "empty key"}
 		}
 		// Actual separator met. Finalize the key and prepare to build the value
-		*key = builder.String()
-		builder.Reset()
-		*inKey = false
-		*inMember = false
-	} else if !*inMember && *inKey && c == '#' {
-		// (!*inMember && *inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
-		*skipLine = true
-	} else if *inMember || c != ' ' && c != '\t' {
+		state.key = state.builder.String()
+		state.builder.Reset()
+		state.inKey = false
+		state.inMember = false
+	} else if !state.inMember && state.inKey && c == '#' {
+		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+		state.skipLine = true
+	} else if state.inMember || c != ' ' && c != '\t' {
 		// Skip leading whitespace
-		builder.WriteByte(c)
-		*inMember = true
+		state.builder.WriteByte(c)
+		state.inMember = true
 	}
 	return nil
 }
@@ -115,34 +115,26 @@ func processByte(c byte, p *Properties, lineNumber *uint, key *string, builder *
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1)
-	var lineNumber uint = 1
-	var key string
-	builder := strings.Builder{}
-	// Indicates whether the scanner is currently parsing an escape sequence
-	escaped := false
-	// Indicates whether the current property member (key or value) is being parsed
-	// (i.e. if we are no longer scanning leading whitespace)
-	inMember := false
-	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
-	inKey := true
-	// Indicates whether we are currently reading a comment line (to be skipped)
-	skipLine := false
+	state := loadState{
+		lineNumber: 1,
+		inKey:      true,
+	}
 	var err error
 	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
-		if err := processByte(buffer[0], p, &lineNumber, &key, &builder, &escaped, &inMember, &inKey, &skipLine); err != nil {
+		if err := processByte(buffer[0], p, &state); err != nil {
 			return err
 		}
 	}
-	if escaped {
-		return propDefError{lineNumber, "line wrapped without a continuation"}
+	if state.escaped {
+		return propDefError{state.lineNumber, "line wrapped without a continuation"}
 	}
 	// Process last line if no trailing EOL was found
-	if inMember {
-		if inKey {
+	if state.inMember {
+		if state.inKey {
 			// No separator found: ill-formed definition
-			return propDefError{lineNumber, "no separator"}
+			return propDefError{state.lineNumber, "no separator"}
 		}
-		p.Set(strings.TrimRight(key, " \t"), strings.TrimRight(builder.String(), " \t"))
+		p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
 	}
 	if err == io.EOF {
 		return nil
