@@ -43,7 +43,8 @@ func (e propDefError) Error() string {
 }
 
 func unescape(c byte) (byte, bool) {
-	if c == '\\' || c == '=' {
+	switch c {
+	case '\\', '=':
 		return c, true
 	}
 	return '?', false
