@@ -42,8 +42,8 @@ func (e propDefError) Error() string {
 	return fmt.Sprintf("invalid property definition on line %d: %s", e.lineNumber, e.message)
 }
 
-func unescape(c byte, inKey bool) (byte, bool) {
-	if c == '\\' || inKey && c == '=' {
+func unescape(c byte) (byte, bool) {
+	if c == '\\' || c == '=' {
 		return c, true
 	}
 	return '?', false
@@ -79,7 +79,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.lineNumber++
 			state.inMember = false
 		} else {
-			u, ok := unescape(c, state.inKey)
+			u, ok := unescape(c)
 			if !ok {
 				return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
 			}
