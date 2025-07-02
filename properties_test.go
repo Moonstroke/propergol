@@ -125,6 +125,13 @@ func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
 	assertGetExpected(t, prop, "key with=separator", VALUE)
 }
 
+func TestPropertiesLoadAcceptsEscapedSeparatorInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	value := `value with\=separator`
+	loadFromString(t, prop, KEY+"="+value)
+	assertGetExpected(t, prop, KEY, "value with=separator")
+}
+
 func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop,
@@ -169,7 +176,7 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	prop := setUpTestInstance()
-	assertLoadReturnsError(t, prop, KEY+"=illegal\\=escape-sequence")
+	assertLoadReturnsError(t, prop, KEY+"=illegal\\ escape-sequence")
 }
 
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
