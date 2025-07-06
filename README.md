@@ -20,7 +20,6 @@ or supplied by users of the application for customized behavior; moreover, it
 adheres to the principle of separation of concerns, which facilitates design and
 maintenance.
 
-
 ## Module interface
 
 The module defines a single structure, named `Properties`. Individual properties
