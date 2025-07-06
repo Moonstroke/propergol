@@ -131,8 +131,9 @@ the actual property value is `value # not a comment`.
 
 ## Writing properties file
 
-The module takes the assumption that, whereas properties files read by the
-module are written by and for humans, properties files where it stores are
-produced by machines for machines (for example, as part of an automated process)
-and therefore no decoration (whitespace and comments) is output when writing the
-properties.
+The module takes the assumption that, while properties files read by the
+module are written by and for humans, properties files it writes are produced by
+machines for machines (for example, as part of an automated process). Therefore,
+no decoration (whitespace and comments) is output when writing the properties.
+Moreover, the order in which properties are written is unspecified; in
+particular, it may not be the same order in which properties were read.
