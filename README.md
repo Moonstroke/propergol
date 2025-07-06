@@ -79,6 +79,46 @@ space. It is usually there as a result of manual error.
 Likewise, blank lines between properties are allowed. They can be useful to
 group definitions of semantically-related properties.
 
+### Escaping characters
+
+What if one wants to have a property key including an equals sign? Well it is
+possible, but the special meaning of the character has to be disabled somehow.
+This is done by preceeding the sign with a backslash character, like in the
+following example:
+
+    # The key is "key=key" and the value "value"
+    key\=key=value
+
+On the other hand, equals signs in the value have no special meaning, because
+they occur *after* the actual separator. However, they can still be escaped, to
+convey more clearly that they are not the separator:
+
+    # The two following lines are interpreted identically
+    url = https://example.com/query?param\=value
+    url = https://example.com/query?param=value
+
+Combinations of a backslash and another character are called escape
+sequences, and are used to either disable the special meaning of a character
+(like the equals sign as separator above) or add a special meaning to a
+character that is not otherwise special.
+The full list of accepted escape sequences is given below.
+
+|Escape sequence | Result
+|----------------|-------
+|      `\=`      | A literal equals sign
+|      `\\`      | A literal backslash
+|      `\n`      | An ASCII newline (LF)
+|      `\r`      | An ASCII carriage return (CR)
+|      `\t`      | A horizontal tabulation
+
+Note that the escape sequences are oly necessary in properties when read;
+properties set using the programmatic interface need not be escaped:
+
+    // Let prop is a Properties object. This statement:
+    prop.Set(`key with\=escape sequence`, `value`)
+    // sets the value "value" to the property "key with\=escape sequence",
+    // not to "key with=escape sequence"
+
 ### Line wrapping
 
 If a line length limit is to be enforced, and some properties are longer, it is
