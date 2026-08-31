@@ -194,6 +194,9 @@ func (p *Properties) Store(writer io.Writer) error {
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
 	})
 	for key, val := range p.values {
+		if key[0] == '#' {
+			return fmt.Errorf("Cannot store key %q: it would be read as a comment", key)
+		}
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
 		}
