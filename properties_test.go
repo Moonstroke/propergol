@@ -377,3 +377,13 @@ func TestRoundTripLoadThenStore(t *testing.T) {
 		t.Fatalf("Expected: %q; got %q", repr, stored)
 	}
 }
+
+func TestRoundTripLoadThenStoreDoesNotPreserveAllEscSeqs(t *testing.T) {
+	prop := setUpTestInstance()
+	rawRepr := `key with a discaradable\tescape sequence=value with\=discardable\tescape sequences`
+	processedRepr := "key with a discaradable\tescape sequence=value with=discardable\tescape sequences"
+	loadFromString(t, prop, rawRepr)
+	if stored := storeToString(t, prop); stored != processedRepr {
+		t.Fatalf("Expected: %q; got %q", processedRepr, stored)
+	}
+}
