@@ -34,7 +34,11 @@ func (p *Properties) Get(key string) (string, bool) {
 	if !present {
 		return "", false
 	}
-	return val.(string), true
+	str, is_string := val.(string)
+	if !is_string {
+		return "", false
+	}
+	return str, true
 }
 
 type propDefError struct {
@@ -169,13 +173,23 @@ func (p *Properties) Store(writer io.Writer) error {
 	valueEscaper := strings.NewReplacer("\\", "\\\\", "\n", "\\n", "\r", "\\r")
 	var e error = nil
 	p.values.Range(func(key, val any) bool {
-		if _, e = keyEscaper.WriteString(writer, key.(string)); e != nil {
+		key_str, key_is_string := key.(string)
+		if !key_is_string {
+			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", key)
+			return false
+		}
+		if _, e = keyEscaper.WriteString(writer, key_str); e != nil {
 			return false
 		}
 		if _, e = writer.Write([]byte{'='}); e != nil {
 			return false
 		}
-		if _, e = valueEscaper.WriteString(writer, val.(string)); e != nil {
+		val_str, val_is_string := val.(string)
+		if !val_is_string {
+			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", val)
+			return false
+		}
+		if _, e = valueEscaper.WriteString(writer, val_str); e != nil {
 			return false
 		}
 		if _, e = writer.Write([]byte{'\n'}); e != nil {
