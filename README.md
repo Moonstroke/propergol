@@ -105,7 +105,7 @@ The full list of accepted escape sequences is given below.
 
 |Escape sequence | Result
 |----------------|-------
-|      `\=`      | A literal equals sign
+|      `\=`      | A literal equals sign, only required in the property key
 |      `\\`      | A literal backslash
 |      `\n`      | An ASCII newline (LF)
 |      `\r`      | An ASCII carriage return (CR)
