@@ -31,7 +31,10 @@ func (p *Properties) Set(key string, value string) {
 // If there is no property with this key, the empty string is returned.
 func (p *Properties) Get(key string) (string, bool) {
 	val, present := p.values.Load(key)
-	return val.(string), present
+	if !present {
+		return "", false
+	}
+	return val.(string), true
 }
 
 type propDefError struct {
