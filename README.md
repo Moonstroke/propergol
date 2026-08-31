@@ -110,6 +110,11 @@ The full list of accepted escape sequences is given below.
 |      `\n`      | An ASCII newline (LF)
 |      `\r`      | An ASCII carriage return (CR)
 |      `\t`      | A horizontal tabulation
+|      `\f`      | An ASCII form feed (FF)
+|      `\v`      | A vertical tabulation
+|      `\a`      | An ASCII alarm
+|      `\b`      | An ASCII backspace (BS)
+|      `\0`      | An ASCII NUL byte
 
 Note that the escape sequences are only necessary in properties when read;
 properties set using the programmatic interface need not be escaped:
