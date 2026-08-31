@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 // This structure represents a mapping of keys to values.
@@ -159,12 +160,16 @@ func (p *Properties) Load(reader io.Reader) error {
 	return err
 }
 
-var oldnew = []string{"=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r"}
-var keyEscaper = strings.NewReplacer(oldnew...)
-var valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
+var keyEscaper, valueEscaper *strings.Replacer
+var replacerInit sync.Once
 
 // Output the properties in text form to the given writer.
 func (p *Properties) Store(writer io.Writer) error {
+	replacerInit.Do(func() {
+		oldnew := []string{"=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r"}
+		keyEscaper = strings.NewReplacer(oldnew...)
+		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
+	})
 	for key, val := range p.values {
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
