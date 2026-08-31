@@ -5,32 +5,33 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 // This structure represents a mapping of keys to values.
 // It is intended to be used to centralize configuration data of an application.
 // The property keys and values are represented as string objects.
 type Properties struct {
-	values map[string]string
+	values sync.Map
 }
 
 // Create an empty instance of the Properties structure.
 func New() *Properties {
-	return &Properties{make(map[string]string)}
+	return &Properties{}
 }
 
 // Assign the given value to the property with the specified key.
 // If no property with this key exists, it is added;
 // otherwise, the value is replaced by the one given and the former value is discarded.
 func (p *Properties) Set(key string, value string) {
-	p.values[key] = value
+	p.values.Store(key, value)
 }
 
 // Retrieve the value of the property with the specified key.
 // If there is no property with this key, the empty string is returned.
 func (p *Properties) Get(key string) (string, bool) {
-	val, present := p.values[key]
-	return val, present
+	val, present := p.values.Load(key)
+	return val.(string), present
 }
 
 type propDefError struct {
@@ -163,19 +164,21 @@ func (p *Properties) Load(reader io.Reader) error {
 func (p *Properties) Store(writer io.Writer) error {
 	keyEscaper := strings.NewReplacer("=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r")
 	valueEscaper := strings.NewReplacer("\\", "\\\\", "\n", "\\n", "\r", "\\r")
-	for key, val := range p.values {
-		if _, e := keyEscaper.WriteString(writer, key); e != nil {
-			return e
+	var e error = nil
+	p.values.Range(func(key, val any) bool {
+		if _, e = keyEscaper.WriteString(writer, key.(string)); e != nil {
+			return false
 		}
-		if _, e := writer.Write([]byte{'='}); e != nil {
-			return e
+		if _, e = writer.Write([]byte{'='}); e != nil {
+			return false
 		}
-		if _, e := valueEscaper.WriteString(writer, val); e != nil {
-			return e
+		if _, e = valueEscaper.WriteString(writer, val.(string)); e != nil {
+			return false
 		}
-		if _, e := writer.Write([]byte{'\n'}); e != nil {
-			return e
+		if _, e = writer.Write([]byte{'\n'}); e != nil {
+			return false
 		}
-	}
-	return nil
+		return true
+	})
+	return e
 }
