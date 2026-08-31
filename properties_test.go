@@ -120,16 +120,18 @@ func TestPropertiesLoadIgnoresBlankLines(t *testing.T) {
 
 func TestPropertiesLoadHandlesEscapedSeparatorInKey(t *testing.T) {
 	prop := setUpTestInstance()
-	key := `key with\=separator`
-	loadFromString(t, prop, key+"="+VALUE)
-	assertGetExpected(t, prop, "key with=separator", VALUE)
+	rawKey := `key with\=separator`
+	processedKey := `key with=separator`
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
 }
 
 func TestPropertiesLoadAcceptsEscapedSeparatorInValue(t *testing.T) {
 	prop := setUpTestInstance()
-	value := `value with\=separator`
-	loadFromString(t, prop, KEY+"="+value)
-	assertGetExpected(t, prop, KEY, "value with=separator")
+	rawValue := `value with\=separator`
+	processedValue := "value with=separator"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
 }
 
 func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
