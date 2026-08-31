@@ -161,8 +161,9 @@ func (p *Properties) Load(reader io.Reader) error {
 
 // Output the properties in text form to the given writer.
 func (p *Properties) Store(writer io.Writer) error {
-	keyEscaper := strings.NewReplacer("=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r")
-	valueEscaper := strings.NewReplacer("\\", "\\\\", "\n", "\\n", "\r", "\\r")
+	oldnew := []string{"=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r"}
+	keyEscaper := strings.NewReplacer(oldnew...)
+	valueEscaper := strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
 	for key, val := range p.values {
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
