@@ -53,6 +53,16 @@ func unescape(c byte) (byte, bool) {
 		return '\r', true
 	case 't':
 		return '\t', true
+	case 'f':
+		return '\f', true
+	case 'v':
+		return '\v', true
+	case 'a':
+		return '\a', true
+	case 'b':
+		return '\b', true
+	case '0':
+		return 0, true
 	}
 	return '?', false
 }
