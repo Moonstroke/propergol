@@ -315,6 +315,22 @@ func TestPropertiesLoadHandlesEscapedBSInValue(t *testing.T) {
 	assertGetExpected(t, prop, KEY, processedValue)
 }
 
+func TestPropertiesLoadHandlesEscapedEscInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\eescaped Esc`
+	processedKey := "key with\x1bescaped Esc"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedEscInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\eescaped Esc`
+	processedValue := "value with\x1bescaped Esc"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsError(t, prop, "illegal\\ escape-sequence="+VALUE)

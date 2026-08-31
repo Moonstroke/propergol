@@ -114,6 +114,7 @@ The full list of accepted escape sequences is given below.
 |      `\v`      | A vertical tabulation
 |      `\a`      | An ASCII alarm
 |      `\b`      | An ASCII backspace (BS)
+|      `\e`      | An ASCII Escape control char
 |      `\0`      | An ASCII NUL byte
 
 Note that the escape sequences are only necessary in properties when read;
