@@ -178,7 +178,18 @@ var replacerInit sync.Once
 // Output the properties in text form to the given writer.
 func (p *Properties) Store(writer io.Writer) error {
 	replacerInit.Do(func() {
-		oldnew := []string{"=", "\\=", "\\", "\\\\", "\n", "\\n", "\r", "\\r"}
+		oldnew := []string{
+			"=", `\=`,
+			`\`, `\\`,
+			"\n", `\n`,
+			"\r", `\r`,
+			"\f", `\f`,
+			"\v", `\v`,
+			"\a", `\a`,
+			"\b", `\b`,
+			"\x1b", `\e`,
+			"\000", `\0`,
+		}
 		keyEscaper = strings.NewReplacer(oldnew...)
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
 	})
