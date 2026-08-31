@@ -358,6 +358,15 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	}
 }
 
+func TestPropertiesStoreCannotStoreKeyPrefixedWithHashSign(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set("# key", VALUE)
+	e := prop.Store(&strings.Builder{})
+	if e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
+
 func TestRoundTripStoreThenLoad(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "\bkey:with=special\fchars\tin#it\\\000"
