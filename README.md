@@ -111,7 +111,7 @@ The full list of accepted escape sequences is given below.
 |      `\r`      | An ASCII carriage return (CR)
 |      `\t`      | A horizontal tabulation
 
-Note that the escape sequences are oly necessary in properties when read;
+Note that the escape sequences are only necessary in properties when read;
 properties set using the programmatic interface need not be escaped:
 
     // Let prop is a Properties object. This statement:
