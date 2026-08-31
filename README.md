@@ -168,6 +168,19 @@ definitions, for example:
     # defined here but sourced from the environment
     username=jean_dupont
 
+This means that actual property keys cannot start with a hash sign, as they will
+be considered as comments and skipped, for example after loading the following
+lines:
+
+    #FF6347 = Tomato
+    #00FA9A = MediumSpringGreen
+    #5F9EA0 = CadetBlue
+    #2F4F4F = DarkSlateGray
+
+the properties `#FF6347`, `#00FA9A`, `#5F9EA0` and `#2F4F4F` will be undefined.
+There is currently no way to define property keys starting with a `#` apart from
+the programmatic API; and storing such property will raise an error.
+
 Inline comments, or comments on the same line as the property definition, are
 not handled. This means that in this case:
 
