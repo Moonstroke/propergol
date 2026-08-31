@@ -169,6 +169,70 @@ func TestPropertiesLoadHasNoInlineComments(t *testing.T) {
 	assertGetExpected(t, prop, KEY, value)
 }
 
+func TestPropertiesLoadHandlesEscapedBackslashInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\\escaped backslash`
+	processedKey := "key with\\escaped backslash"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedBackslashInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\\escaped backslash`
+	processedValue := "value with\\escaped backslash"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
+func TestPropertiesLoadHandlesEscapedLFInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\nescaped LF`
+	processedKey := "key with\nescaped LF"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedLFInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\nescaped LF`
+	processedValue := "value with\nescaped LF"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
+func TestPropertiesLoadHandlesEscapedCRInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\rescaped CR`
+	processedKey := "key with\rescaped CR"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedCRInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\rescaped CR`
+	processedValue := "value with\rescaped CR"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
+func TestPropertiesLoadHandlesEscapedTabInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\tescaped Tab`
+	processedKey := "key with\tescaped Tab"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedTabInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\tescaped Tab`
+	processedValue := "value with\tescaped Tab"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsError(t, prop, "illegal\\ escape-sequence="+VALUE)
