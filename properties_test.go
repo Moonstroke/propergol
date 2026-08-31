@@ -360,8 +360,8 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 
 func TestRoundTripStoreThenLoad(t *testing.T) {
 	prop := setUpTestInstance()
-	key := "key:with=special chars\tin#it\\"
-	value := "value:with=special chars\tas#well"
+	key := "\bkey:with=special\fchars\tin#it\\\000"
+	value := "\avalue\nwith=special\rchars\vas#well\x1b"
 	prop.Set(key, value)
 	repr := storeToString(t, prop)
 	prop2 := setUpTestInstance()
@@ -371,7 +371,7 @@ func TestRoundTripStoreThenLoad(t *testing.T) {
 
 func TestRoundTripLoadThenStore(t *testing.T) {
 	prop := setUpTestInstance()
-	repr := "key:with\\=special chars\tin#it=value:with=special chars\tas#well"
+	repr := `\bkey:with\=special\fchars` + "\t" + `in#it\\\0=\avalue\nwith=special\rchars\vas#well\e`
 	loadFromString(t, prop, repr)
 	if stored := storeToString(t, prop); stored != repr {
 		t.Fatalf("Expected: %q; got %q", repr, stored)
