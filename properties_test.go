@@ -345,7 +345,7 @@ func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
 	if stored := storeToString(t, prop); stored != REPR {
-		t.Fatal("Expected: " + REPR + "; got: " + stored)
+		t.Fatalf("Expected: %q; got: %q", REPR, stored)
 	}
 }
 
@@ -354,7 +354,7 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	prop.Set("key with=separator", VALUE)
 	expected := `key with\=separator=` + VALUE
 	if stored := storeToString(t, prop); stored != expected {
-		t.Fatal("Expected: " + expected + "; got: " + stored)
+		t.Fatalf("Expected: %q; got: %q", REPR, stored)
 	}
 }
 
@@ -374,6 +374,6 @@ func TestRoundTripLoadThenStore(t *testing.T) {
 	repr := "key:with\\=special chars\tin#it=value:with=special chars\tas#well"
 	loadFromString(t, prop, repr)
 	if stored := storeToString(t, prop); stored != repr {
-		t.Fatal("Expected: " + repr + ", got: " + stored)
+		t.Fatalf("Expected: %q; got %q", repr, stored)
 	}
 }
