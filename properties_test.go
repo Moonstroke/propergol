@@ -24,7 +24,10 @@ func assertSetAndGetBackSame(t *testing.T, key, value string) {
 }
 
 func assertGetExpected(t *testing.T, prop *Properties, key, expected string) {
-	if got, present := prop.Get(key); !present || got != expected {
+	got, present := prop.Get(key)
+	if !present {
+		t.Fatalf("Expected: %q; got absent", expected)
+	} else if got != expected {
 		t.Fatalf("Expected: %q; got %q", expected, got)
 	}
 }
