@@ -195,10 +195,17 @@ func (p *Properties) Store(writer io.Writer) error {
 	})
 	for key, val := range p.values {
 		if key[0] == '#' {
-			return fmt.Errorf("Cannot store key %q: it would be read as a comment", key)
+			if _, e := writer.Write([]byte{'"'}); e != nil {
+				return e
+			}
 		}
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
+		}
+		if key[0] == '#' {
+			if _, e := writer.Write([]byte{'"'}); e != nil {
+				return e
+			}
 		}
 		if _, e := writer.Write([]byte{'='}); e != nil {
 			return e
