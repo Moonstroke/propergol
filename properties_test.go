@@ -341,7 +341,7 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	assertLoadReturnsError(t, prop, KEY+"=illegal\\ escape-sequence")
 }
 
-func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
+func TestPropertiesStoreFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
 	if stored := storeToString(t, prop); stored != REPR {
