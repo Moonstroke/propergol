@@ -331,6 +331,22 @@ func TestPropertiesLoadHandlesEscapedEscInValue(t *testing.T) {
 	assertGetExpected(t, prop, KEY, processedValue)
 }
 
+func TestPropertiesLoadHandlesEscapedDQInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\"escaped double quotes`
+	processedKey := "key with\"escaped double quotes"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedDQInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\"escaped double quotes`
+	processedValue := "value with\"escaped double quotes"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsError(t, prop, "illegal\\ escape-sequence="+VALUE)
