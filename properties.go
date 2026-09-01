@@ -45,7 +45,7 @@ func (e propDefError) Error() string {
 
 func unescape(c byte) (byte, bool) {
 	switch c {
-	case '\\', '=':
+	case '\\', '=', '"':
 		return c, true
 	case 'n':
 		return '\n', true
