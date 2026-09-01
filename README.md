@@ -25,8 +25,8 @@ maintenance.
 The module defines a single structure, named `Properties`. Individual properties
 are accessed using the method `Get(string) (string, bool)` and defined using
 `Set(string, string)`. The methods `Load(io.Reader) error` and
-`Store(io.Writer) error` allow to interact with I/O objects (wrapping files,
-most of the time) to read (respectively write) property definitions.
+`Store(io.Writer) error` allow to interact with I/O objects (mainly file
+wrappers) to respectively read and write property definitions.
 
 More technical details are available in the documentation embedded in [the
 source](properties.go).
@@ -72,7 +72,7 @@ display:
     meat      = mutton
     dairy     = yogurt
 
-Whitespace *after* the value is also silently discarded, but it is not
+Whitespace *after* the value is also silently discarded. It is anyway not
 recommended to have any, as it has no utility and only takes up unnecessary
 space. It is usually there as a result of manual error.
 
@@ -86,7 +86,7 @@ possible, but the special meaning of the character has to be disabled somehow.
 This is done by preceeding the sign with a backslash character, like in the
 following example:
 
-    # The key is "key=key" and the value "value"
+    # The key is “key=key” and the value “value”
     key\=key=value
 
 On the other hand, equals signs in the value have no special meaning, because
@@ -118,12 +118,13 @@ The full list of accepted escape sequences is given below.
 |      `\0`      | An ASCII NUL byte
 
 Note that the escape sequences are only necessary in properties when read;
-properties set using the programmatic interface need not be escaped:
+properties set using the programmatic interface need not be escaped. For
+example, let prop is a `Properties` object. The statement:
 
-    // Let prop is a Properties object. This statement:
-    prop.Set(`key with\=escape sequence`, `value`)
-    // sets the value "value" to the property "key with\=escape sequence",
-    // not to "key with=escape sequence"
+    prop.Set(`key with\=escape sequence`, "value")
+
+sets the value “`value`” to the property “`key with\=escape sequence`”, not to
+“`key with=escape sequence`”.
 
 ### Line wrapping
 
@@ -177,9 +178,9 @@ lines:
     #5F9EA0 = CadetBlue
     #2F4F4F = DarkSlateGray
 
-the properties `#FF6347`, `#00FA9A`, `#5F9EA0` and `#2F4F4F` will be undefined.
-There is currently no way to define property keys starting with a `#` apart from
-the programmatic API; and storing such property will raise an error.
+the properties `#FF6347`, `#00FA9A`, `#5F9EA0` and `#2F4F4F` will not be
+defined. There is currently no way to define property keys starting with a `#`
+apart from the programmatic API; and storing such property will raise an error.
 
 Inline comments, or comments on the same line as the property definition, are
 not handled. This means that in this case:
