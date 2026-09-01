@@ -374,12 +374,12 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	}
 }
 
-func TestPropertiesStoreCannotStoreKeyPrefixedWithHashSign(t *testing.T) {
+func TestPropertiesStoreStoresKeyPrefixedWithHashSignInDQ(t *testing.T) {
 	prop := setUpTestInstance()
-	prop.Set("# key", VALUE)
-	e := prop.Store(&strings.Builder{})
-	if e == nil {
-		t.Fatal("Expected failure, but no error was raised")
+	prop.Set("# "+KEY, VALUE)
+	repr := `"# ` + KEY + `"=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
 	}
 }
 
