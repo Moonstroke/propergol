@@ -383,6 +383,42 @@ func TestPropertiesStoreStoresKeyPrefixedWithHashSignInDQ(t *testing.T) {
 	}
 }
 
+func TestPropertiesStoreQuotesWhitespaceOnlyKey(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set("   ", VALUE)
+	repr := `"   "=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuotesWhitespaceOnlyValue(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, "   ")
+	repr := KEY + `="   "`
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuoteKeyWSurroundingWs(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(" "+KEY+" ", VALUE)
+	repr := `" ` + KEY + ` "=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuotesValueWSurroundingWs(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, " "+VALUE+" ")
+	repr := KEY + `=" ` + VALUE + ` "`
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
 func TestRoundTripStoreThenLoad(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "\bkey:with=special\fchars\tin#it\\\000"
