@@ -76,6 +76,17 @@ Whitespace *after* the value is also silently discarded. It is anyway not
 recommended to have any, as it has no utility and only takes up unnecessary
 space. It is usually there as a result of manual error.
 
+To force the inclusion of whitespace on either side of the key or value, it can
+be surrounded with double quotes:
+
+    noOneCanHearYouScream = "  in spaces  "
+
+The value of the property will be “`  in spaces  `” and not “`in spaces`”.
+
+Surrounding whitespace set programmatically (i.e. using the method
+`Properties.Set`) will be preserved. When stored, it will be enclosed in double
+quotes so that it is not lost in the operation.
+
 Likewise, blank lines between properties are allowed. They can be useful to
 group definitions of semantically-related properties.
 
@@ -116,6 +127,7 @@ The full list of accepted escape sequences is given below.
 |      `\b`      | An ASCII backspace (BS)
 |      `\e`      | An ASCII Escape control char
 |      `\0`      | An ASCII NUL byte
+|      `\"`      | A double quotes
 
 Note that the escape sequences are only necessary in properties when read;
 properties set using the programmatic interface need not be escaped. For
@@ -181,6 +193,17 @@ lines:
 the properties `#FF6347`, `#00FA9A`, `#5F9EA0` and `#2F4F4F` will not be
 defined. There is currently no way to define property keys starting with a `#`
 apart from the programmatic API; and storing such property will raise an error.
+
+The only way to define such properties is by surrounding the key with
+double quotes:
+
+    "#FF6347" = Tomato
+    "#00FA9A" = MediumSpringGreen
+    "#5F9EA0" = CadetBlue
+    "#2F4F4F" = DarkSlateGray
+
+When storing properties whose key starts with a hash sign, the key will be
+output surrounded with double quotes.
 
 Inline comments, or comments on the same line as the property definition, are
 not handled. This means that in this case:
