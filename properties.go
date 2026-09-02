@@ -189,6 +189,7 @@ func (p *Properties) Store(writer io.Writer) error {
 			"\b", `\b`,
 			"\x1b", `\e`,
 			"\000", `\0`,
+			`"`, `\"`,
 		}
 		keyEscaper = strings.NewReplacer(oldnew...)
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
