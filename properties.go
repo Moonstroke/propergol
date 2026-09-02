@@ -195,7 +195,8 @@ func (p *Properties) Store(writer io.Writer) error {
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
 	})
 	for key, val := range p.values {
-		if key[0] == '#' {
+		keyNeedsQuoting := key[0] == '#' || key[0] == ' ' || key[0] == '\t' || key[len(key)-1] == ' ' || key[len(key)-1] == '\t'
+		if keyNeedsQuoting {
 			if _, e := writer.Write([]byte{'"'}); e != nil {
 				return e
 			}
@@ -203,7 +204,7 @@ func (p *Properties) Store(writer io.Writer) error {
 		if _, e := keyEscaper.WriteString(writer, key); e != nil {
 			return e
 		}
-		if key[0] == '#' {
+		if keyNeedsQuoting {
 			if _, e := writer.Write([]byte{'"'}); e != nil {
 				return e
 			}
