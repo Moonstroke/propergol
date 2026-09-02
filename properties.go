@@ -212,8 +212,19 @@ func (p *Properties) Store(writer io.Writer) error {
 		if _, e := writer.Write([]byte{'='}); e != nil {
 			return e
 		}
+		valNeedsQuoting := val[0] == ' ' || val[0] == '\t' || val[len(val)-1] == ' ' || val[len(val)-1] == '\t'
+		if valNeedsQuoting {
+			if _, e := writer.Write([]byte{'"'}); e != nil {
+				return e
+			}
+		}
 		if _, e := valueEscaper.WriteString(writer, val); e != nil {
 			return e
+		}
+		if valNeedsQuoting {
+			if _, e := writer.Write([]byte{'"'}); e != nil {
+				return e
+			}
 		}
 		if _, e := writer.Write([]byte{'\n'}); e != nil {
 			return e
