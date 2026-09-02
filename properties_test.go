@@ -361,6 +361,7 @@ func TestPropertiesLoadPreservesQuotedKeyWLeadingHash(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
 	assertGetExpected(t, prop, key, VALUE)
 }
 
@@ -368,6 +369,7 @@ func TestPropertiesLoadPreservesQuotedWhitespaceOnlyKey(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "   "
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
 	assertGetExpected(t, prop, key, VALUE)
 }
 
@@ -382,6 +384,7 @@ func TestPropertiesLoadPreservesQuotedKeyWSurroundingWS(t *testing.T) {
 	prop := setUpTestInstance()
 	key := " " + KEY + " "
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
 	assertGetExpected(t, prop, key, VALUE)
 }
 
