@@ -16,6 +16,7 @@ func setUpTestInstance() *Properties {
 }
 
 func assertSetAndGetBackSame(t *testing.T, key, value string) {
+	t.Helper()
 	prop := setUpTestInstance()
 	prop.Set(key, value)
 	if got, present := prop.Get(key); !present || got != value {
@@ -24,6 +25,7 @@ func assertSetAndGetBackSame(t *testing.T, key, value string) {
 }
 
 func assertGetExpected(t *testing.T, prop *Properties, key, expected string) {
+	t.Helper()
 	got, present := prop.Get(key)
 	if !present {
 		t.Fatalf("Expected: %q; got absent", expected)
@@ -33,24 +35,28 @@ func assertGetExpected(t *testing.T, prop *Properties, key, expected string) {
 }
 
 func assertGetAbsent(t *testing.T, prop *Properties, key string) {
+	t.Helper()
 	if _, present := prop.Get(key); present {
 		t.Fatal("Expected: absent; got: present")
 	}
 }
 
 func assertLoadReturnsError(t *testing.T, prop *Properties, repr string) {
+	t.Helper()
 	if e := prop.Load(strings.NewReader(repr)); e == nil {
 		t.Fatal("Expected failure, but no error was raised")
 	}
 }
 
 func loadFromString(t *testing.T, prop *Properties, data string) {
+	t.Helper()
 	if e := prop.Load(strings.NewReader(data)); e != nil {
 		t.Fatal(e)
 	}
 }
 
 func storeToString(t *testing.T, prop *Properties) string {
+	t.Helper()
 	stringWriter := &strings.Builder{}
 	if e := prop.Store(stringWriter); e != nil {
 		t.Fatal(e)
