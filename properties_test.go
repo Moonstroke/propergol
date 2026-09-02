@@ -357,19 +357,31 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	assertLoadReturnsError(t, prop, KEY+"=illegal\\ escape-sequence")
 }
 
-func TestPropertiesLoadPreservesQuotedKeyWLeadingHash(t *testing.T) {
+func TestPropertiesLoadStripsQuotesAroundQuotedKeyWLeadingHash(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
 	assertGetAbsent(t, prop, `"`+key+`"`)
+}
+
+func TestPropertiesLoadPreservesQuotedKeyWLeadingHash(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "# " + KEY
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
 	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadStripsQuotesAroundQuotedWhitespaceOnlyKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "   "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
 }
 
 func TestPropertiesLoadPreservesQuotedWhitespaceOnlyKey(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "   "
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
-	assertGetAbsent(t, prop, `"`+key+`"`)
 	assertGetExpected(t, prop, key, VALUE)
 }
 
@@ -380,11 +392,17 @@ func TestPropertiesLoadPreservesQuotedWhitespaceOnlyValue(t *testing.T) {
 	assertGetExpected(t, prop, KEY, value)
 }
 
-func TestPropertiesLoadPreservesQuotedKeyWSurroundingWS(t *testing.T) {
+func TestPropertiesLoadStripsQuotesAroundQuotedKeyWSurroundingWS(t *testing.T) {
 	prop := setUpTestInstance()
 	key := " " + KEY + " "
 	loadFromString(t, prop, `"`+key+`"=`+VALUE)
 	assertGetAbsent(t, prop, `"`+key+`"`)
+}
+
+func TestPropertiesLoadPreservesQuotedKeyWSurroundingWS(t *testing.T) {
+	prop := setUpTestInstance()
+	key := " " + KEY + " "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
 	assertGetExpected(t, prop, key, VALUE)
 }
 
