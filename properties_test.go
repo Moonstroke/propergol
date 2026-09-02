@@ -388,7 +388,7 @@ func TestPropertiesLoadPreservesQuotedKeyWSurroundingWS(t *testing.T) {
 func TestPropertiesLoadPreservesValueWSurroundingWS(t *testing.T) {
 	prop := setUpTestInstance()
 	value := " " + VALUE + " "
-	loadFromString(t, prop, KEY+`="`+VALUE+`"`)
+	loadFromString(t, prop, KEY+`="`+value+`"`)
 	assertGetExpected(t, prop, KEY, value)
 }
 
@@ -406,6 +406,24 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	expected := `key with\=separator=` + VALUE
 	if stored := storeToString(t, prop); stored != expected {
 		t.Fatalf("Expected: %q; got: %q", REPR, stored)
+	}
+}
+
+func TestPropertiesStoreEscapesDQuotesInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(`key"with"embedded"quotes`, VALUE)
+	expected := `key\"with\"embedded\"quotes=` + VALUE
+	if stored := storeToString(t, prop); stored != expected {
+		t.Fatalf("Expected: %q; got: %q", expected, stored)
+	}
+}
+
+func TestPropertiesStoreEscapesDQuotesInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, `value"with"embedded"quotes`)
+	expected := KEY + `=value\"with\"embedded\"quotes`
+	if stored := storeToString(t, prop); stored != expected {
+		t.Fatalf("Expected: %q; got: %q", expected, stored)
 	}
 }
 
