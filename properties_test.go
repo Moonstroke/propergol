@@ -39,23 +39,20 @@ func assertGetAbsent(t *testing.T, prop *Properties, key string) {
 }
 
 func assertLoadReturnsError(t *testing.T, prop *Properties, repr string) {
-	e := prop.Load(strings.NewReader(repr))
-	if e == nil {
+	if e := prop.Load(strings.NewReader(repr)); e == nil {
 		t.Fatal("Expected failure, but no error was raised")
 	}
 }
 
 func loadFromString(t *testing.T, prop *Properties, data string) {
-	e := prop.Load(strings.NewReader(data))
-	if e != nil {
+	if e := prop.Load(strings.NewReader(data)); e != nil {
 		t.Fatal(e)
 	}
 }
 
 func storeToString(t *testing.T, prop *Properties) string {
 	stringWriter := &strings.Builder{}
-	e := prop.Store(stringWriter)
-	if e != nil {
+	if e := prop.Store(stringWriter); e != nil {
 		t.Fatal(e)
 	}
 	repr := stringWriter.String()
@@ -147,8 +144,7 @@ func TestPropertiesLoadHandlesWrappedLines(t *testing.T) {
 
 func TestPropertiesLoadFailsOnWrappedLineWoCont(t *testing.T) {
 	prop := setUpTestInstance()
-	e := prop.Load(strings.NewReader(KEY + `=value broken\`))
-	if e == nil {
+	if e := prop.Load(strings.NewReader(KEY + `=value broken\`)); e == nil {
 		t.Fatal("Expected failure, but no error was raised")
 	}
 }
