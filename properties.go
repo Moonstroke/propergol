@@ -136,7 +136,9 @@ func processByte(c byte, p *Properties, state *loadState) error {
 		state.skipLine = true
 	case state.inMember || c != ' ' && c != '\t':
 		// Skip leading whitespace
-		state.builder.WriteByte(c)
+		if c != '"' {
+			state.builder.WriteByte(c)
+		}
 		state.inMember = true
 	}
 	return nil
