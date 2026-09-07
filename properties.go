@@ -120,7 +120,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 				// No separator found: ill-formed definition
 				return propDefError{state.lineNumber, "no separator"}
 			}
-			p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
+			p.Set(state.key, state.builder.String()[:state.lastChar])
 			state.builder.Reset()
 			state.inKey = true
 			state.inMember = false
@@ -131,7 +131,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			return propDefError{state.lineNumber, "empty key"}
 		}
 		// Actual separator met. Finalize the key and prepare to build the value
-		state.key = state.builder.String()
+		state.key = state.builder.String()[:state.lastChar]
 		state.builder.Reset()
 		state.inKey = false
 		state.inMember = false
@@ -172,7 +172,7 @@ func (p *Properties) Load(reader io.Reader) error {
 			// No separator found: ill-formed definition
 			return propDefError{state.lineNumber, "no separator"}
 		}
-		p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
+		p.Set(state.key, state.builder.String()[:state.lastChar])
 	}
 	if err == io.EOF {
 		return nil
