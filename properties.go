@@ -106,6 +106,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 				return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
 			}
 			state.builder.WriteByte(u)
+			state.lastChar++
 		}
 		state.escaped = false
 	case c == '\\':
@@ -123,6 +124,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.builder.Reset()
 			state.inKey = true
 			state.inMember = false
+			state.lastChar = 0
 		}
 	case c == '=' && state.inKey:
 		if !state.inMember {
@@ -133,6 +135,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 		state.builder.Reset()
 		state.inKey = false
 		state.inMember = false
+		state.lastChar = 0
 	case !state.inMember && state.inKey && c == '#':
 		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 		state.skipLine = true
@@ -142,6 +145,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.builder.WriteByte(c)
 		}
 		state.inMember = true
+		state.lastChar = uint(state.builder.Len())
 	}
 	return nil
 }
