@@ -76,6 +76,8 @@ type loadState struct {
 	key string
 	// Used to construct each property member in turn
 	builder strings.Builder
+	// Index of the last significant (i.e. not discardable whitespace) character in the above builder
+	lastChar uint
 	// Indicates whether the scanner is currently parsing an escape sequence
 	escaped bool
 	// Indicates whether the current property member (key or value) is being parsed
