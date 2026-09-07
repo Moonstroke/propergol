@@ -413,6 +413,26 @@ func TestPropertiesLoadPreservesValueWSurroundingWS(t *testing.T) {
 	assertGetExpected(t, prop, KEY, value)
 }
 
+func TestPropertiesLoadDiscardsWSOutOfQuotedKey(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, "\t\" "+KEY+` " =`+VALUE)
+	assertGetAbsent(t, prop, "\t "+KEY+"  ")
+}
+
+func TestPropertiesLoadDiscardsNonQuotedWSAroundKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := " " + KEY + " "
+	loadFromString(t, prop, "\t\""+key+`" =`+VALUE)
+	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadDiscardsNonQuotedWSAroundValue(t *testing.T) {
+	prop := setUpTestInstance()
+	value := " " + VALUE + " "
+	loadFromString(t, prop, KEY+`= "`+value+`"  `)
+	assertGetExpected(t, prop, KEY, value)
+}
+
 func TestPropertiesWriteFollowsReprFormat(t *testing.T) {
 	prop := setUpTestInstance()
 	prop.Set(KEY, VALUE)
