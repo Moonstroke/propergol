@@ -139,8 +139,12 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	case !state.inMember && state.inKey && c == '#':
 		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 		state.skipLine = true
-	case state.inMember || c != ' ' && c != '\t':
-		// Skip leading whitespace
+	case c == ' ' || c == '\t':
+		// Only write significant whitespace (i.e. not leading indentation)
+		if state.inMember {
+			state.builder.WriteByte(c)
+		}
+	default:
 		if c != '"' {
 			state.builder.WriteByte(c)
 		}
