@@ -151,7 +151,7 @@ func (p *Properties) Load(reader io.Reader) error {
 	}
 	var err error
 	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
-		if err := processByte(buffer[0], p, &state); err != nil {
+		if err = processByte(buffer[0], p, &state); err != nil {
 			return err
 		}
 	}
