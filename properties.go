@@ -144,15 +144,17 @@ func processByte(c byte, p *Properties, state *loadState) error {
 
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 1024)
 	state := loadState{
 		lineNumber: 1,
 		inKey:      true,
 	}
 	var err error
-	for _, err = reader.Read(buffer); err == nil; _, err = reader.Read(buffer) {
-		if err = processByte(buffer[0], p, &state); err != nil {
-			return err
+	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
+		for i := range n {
+			if err = processByte(buffer[i], p, &state); err != nil {
+				return err
+			}
 		}
 	}
 	if state.escaped {
