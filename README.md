@@ -79,6 +79,14 @@ space. It is usually there as a result of manual error.
 Likewise, blank lines between properties are allowed. They can be useful to
 group definitions of semantically-related properties.
 
+#### Line endings
+
+Lines are ended with either a single Line Feed (LF) character or a Carriage
+Return character immediately followed by a LF, the latter to accomodate for the
+file written on Windows platforms. A single CR is considered a whitespace
+character and does not constitute a line break (this measn that there is no
+support for Mac OS Classic files).
+
 ### Escaping characters
 
 What if one wants to have a property key including an equals sign? Well it is
