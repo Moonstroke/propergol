@@ -101,18 +101,22 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.skipLine = false
 		}
 	case state.escaped:
-		if c == '\n' {
-			// Wrapped line
-			state.lineNumber++
-			state.inMember = false
+		if c == '\r' {
+			state.wasCR = true
 		} else {
-			u, ok := unescape(c)
-			if !ok {
-				return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
+			if c == '\n' {
+				// Wrapped line
+				state.lineNumber++
+				state.inMember = false
+			} else {
+				u, ok := unescape(c)
+				if !ok {
+					return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
+				}
+				state.builder.WriteByte(u)
 			}
-			state.builder.WriteByte(u)
+			state.escaped = false
 		}
-		state.escaped = false
 	case c == '\\':
 		state.escaped = true
 		state.inMember = true
