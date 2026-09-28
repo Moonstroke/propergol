@@ -416,3 +416,10 @@ func TestPropertiesLoadHandlesCRLFInLineContinuation(t *testing.T) {
 	loadFromString(t, prop, repr)
 	assertGetExpected(t, prop, "key1", "value1 continued")
 }
+
+func TestPropertiesLoadPreservesTrailingCR(t *testing.T) {
+	prop := setUpTestInstance()
+	repr := "key1 = value1\r"
+	loadFromString(t, prop, repr)
+	assertGetExpected(t, prop, "key1", "value1\r")
+}
