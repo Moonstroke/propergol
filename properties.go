@@ -90,6 +90,11 @@ type loadState struct {
 }
 
 func processByte(c byte, p *Properties, state *loadState) error {
+	// Does not fit in the state switch because c still needs to be processed after an optional stray CR is handled
+	if state.wasCR && c != '\n' {
+		state.builder.WriteByte('\r')
+		state.wasCR = false
+	}
 	switch {
 	case state.skipLine:
 		if c == '\n' {
