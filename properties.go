@@ -85,6 +85,8 @@ type loadState struct {
 	inKey bool
 	// Indicates whether we are currently reading a comment line (to be skipped)
 	skipLine bool
+	// Indicats that the previous character was a Carriage Return
+	wasCR bool
 }
 
 func processByte(c byte, p *Properties, state *loadState) error {
