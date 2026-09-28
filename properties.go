@@ -111,6 +111,8 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	case c == '\\':
 		state.escaped = true
 		state.inMember = true
+	case c == '\r':
+		state.wasCR = true
 	case c == '\n':
 		// End of physical line (escaped line breaks already handled above)
 		// not in a member => blank or empty line: no property to add.
