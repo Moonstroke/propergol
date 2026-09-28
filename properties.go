@@ -183,6 +183,9 @@ func (p *Properties) Load(reader io.Reader) error {
 			// No separator found: ill-formed definition
 			return propDefError{state.lineNumber, "no separator"}
 		}
+		if state.wasCR {
+			state.builder.WriteByte('\r')
+		}
 		p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
 	}
 	if err == io.EOF {
