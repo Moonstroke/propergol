@@ -401,3 +401,18 @@ func TestRoundTripLoadThenStoreDoesNotPreserveAllEscSeqs(t *testing.T) {
 		t.Fatalf("Expected: %q; got %q", processedRepr, stored)
 	}
 }
+
+func TestPropertiesLoadHandlesCRLFLineEnding(t *testing.T) {
+	prop := setUpTestInstance()
+	repr := "key1 = value1\r\nkey2 = value2\r\n"
+	loadFromString(t, prop, repr)
+	assertGetExpected(t, prop, "key1", "value1")
+	assertGetExpected(t, prop, "key2", "value2")
+}
+
+func TestPropertiesLoadHandlesCRLFInLineContinuation(t *testing.T) {
+	prop := setUpTestInstance()
+	repr := "key1 = value1 \\\r\n       continued"
+	loadFromString(t, prop, repr)
+	assertGetExpected(t, prop, "key1", "value1 continued")
+}
