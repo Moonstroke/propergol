@@ -175,6 +175,12 @@ func (p *Properties) Load(reader io.Reader) error {
 			if err = processByte(<-byteCh, p, &state); err != nil {
 				errCh <- err
 			}
+			select {
+			case err := <-errCh:
+				return err
+			default:
+				// No error, continue
+			}
 		}
 	}
 	close(byteCh)
