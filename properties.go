@@ -167,6 +167,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		lineNumber: 1,
 		inKey:      true,
 	}
+	errCh := make(chan error, 1)
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
 		for _, c := range buffer[:n] {
