@@ -163,7 +163,6 @@ func processByte(c byte, p *Properties, state *loadState) error {
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1024)
 	byteCh := make(chan byte, 1)
-	defer close(byteCh)
 	state := loadState{
 		lineNumber: 1,
 		inKey:      true,
