@@ -162,7 +162,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1024)
-	byteCh := make(chan byte, 1)
+	byteCh := make(chan byte, 1024)
 	state := loadState{
 		lineNumber: 1,
 		inKey:      true,
