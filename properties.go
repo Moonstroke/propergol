@@ -173,7 +173,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		for _, c := range buffer[:n] {
 			byteCh <- c
 			if err = processByte(<-byteCh, p, &state); err != nil {
-				return err
+				errCh <- err
 			}
 		}
 	}
