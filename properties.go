@@ -168,8 +168,8 @@ func (p *Properties) Load(reader io.Reader) error {
 	}
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
-		for i := range n {
-			if err = processByte(buffer[i], p, &state); err != nil {
+		for _, c := range buffer[:n] {
+			if err = processByte(c, p, &state); err != nil {
 				return err
 			}
 		}
