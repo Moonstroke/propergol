@@ -180,7 +180,8 @@ func (p *Properties) Load(reader io.Reader) error {
 	errCh := make(chan error, 1)
 	go pullBytes(p, &state, byteCh, errCh)
 	var err error
-	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
+	var n int
+	for n, err = reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
 		for _, c := range buffer[:n] {
 			byteCh <- c
 			select {
