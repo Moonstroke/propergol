@@ -443,9 +443,14 @@ type partialFailingReader struct {
 }
 
 func (pfr partialFailingReader) Read(b []byte) (int, error) {
-	// Trash implementation (discards the part of pfr.text that doesn't go into b)
-	// but good enough for the present case
-	return copy(b, pfr.text), TEST_ERROR
+	if len(b) >= len(pfr.text) {
+		// The whole test (or what's left of it) fits into the buffer
+		return copy(b, pfr.text), TEST_ERROR
+	}
+	// Blit what fits and only keep the rest
+	n := copy(b, pfr.text)
+	pfr.text = pfr.text[n+1:]
+	return n, nil
 }
 
 func TestPropertiesLoadHandlesReadError(t *testing.T) {
