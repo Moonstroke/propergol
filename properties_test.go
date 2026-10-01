@@ -1,6 +1,7 @@
 package properties
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -423,3 +424,5 @@ func TestPropertiesLoadPreservesTrailingCR(t *testing.T) {
 	loadFromString(t, prop, repr)
 	assertGetExpected(t, prop, "key1", "value1\r")
 }
+
+var TEST_ERROR error = errors.New("test error")
