@@ -193,6 +193,9 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 	}
 	close(byteCh)
+	if err != io.EOF {
+		return err
+	}
 	if processErr := <-errCh; processErr != nil {
 		return processErr
 	}
@@ -210,10 +213,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 		p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
 	}
-	if err == io.EOF {
-		return nil
-	}
-	return err
+	return nil
 }
 
 var keyEscaper, valueEscaper *strings.Replacer
