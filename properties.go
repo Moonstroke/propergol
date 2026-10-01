@@ -168,13 +168,18 @@ func (p *Properties) Load(reader io.Reader) error {
 		inKey:      true,
 	}
 	errCh := make(chan error, 1)
+	go func() {
+		for c := range byteCh {
+			if err := processByte(c, p, &state); err != nil {
+				errCh <- err
+				return
+			}
+		}
+	}()
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
 		for _, c := range buffer[:n] {
 			byteCh <- c
-			if err = processByte(<-byteCh, p, &state); err != nil {
-				errCh <- err
-			}
 			select {
 			case err := <-errCh:
 				return err
