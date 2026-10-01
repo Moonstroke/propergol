@@ -167,7 +167,9 @@ func (p *Properties) Load(reader io.Reader) error {
 		inKey:      true,
 	}
 	var err error
-	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
+	for err == nil {
+		var n int
+		n, err = reader.Read(buffer)
 		for i := range n {
 			if processErr := processByte(buffer[i], p, &state); processErr != nil {
 				return processErr
