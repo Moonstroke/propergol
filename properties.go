@@ -168,15 +168,15 @@ func (p *Properties) Load(reader io.Reader) error {
 		inKey:      true,
 	}
 	errCh := make(chan error, 1)
-	go func() {
+	go func(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<- error) {
 		for c := range byteCh {
-			if err := processByte(c, p, &state); err != nil {
+			if err := processByte(c, p, state); err != nil {
 				errCh <- err
 				return
 			}
 		}
 		close(errCh)
-	}()
+	}(p, &state, byteCh, errCh)
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
 		for _, c := range buffer[:n] {
