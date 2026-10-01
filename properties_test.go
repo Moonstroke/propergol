@@ -456,6 +456,21 @@ func TestPropertiesLoadHandlesReadError(t *testing.T) {
 	}
 }
 
+func TestPropertiesLoadHandlesErrorAfterPartialContent(t *testing.T) {
+	prop := setUpTestInstance()
+	err := prop.Load(partialFailingReader{REPR})
+	if err != TEST_ERROR {
+		t.Fatalf("Expected error %v, got %v", TEST_ERROR, err)
+	}
+	assertGetExpected(t, prop, KEY, VALUE)
+}
+
+func TestPropertiesLoadProcessesPartialContent(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Load(partialFailingReader{REPR})
+	assertGetExpected(t, prop, KEY, VALUE)
+}
+
 func TestEmptyPropertiesStoreRaisesNoError(t *testing.T) {
 	prop := setUpTestInstance()
 	err := prop.Store(failingReaderWriter{})
