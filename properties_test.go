@@ -437,3 +437,28 @@ func (_ failingReaderWriter) Read(b []byte) (int, error) {
 func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
 	return 0, TEST_ERROR
 }
+
+func TestPropertiesLoadHandlesReadError(t *testing.T) {
+	prop := setUpTestInstance()
+	err := prop.Load(failingReaderWriter{})
+	if err != TEST_ERROR {
+		t.Fatalf("Expected error %v, got %v", TEST_ERROR, err)
+	}
+}
+
+func TestEmptyPropertiesStoreRaisesNoError(t *testing.T) {
+	prop := setUpTestInstance()
+	err := prop.Store(failingReaderWriter{})
+	if err != nil {
+		t.Fatalf("Expected error %v, got %v", nil, err)
+	}
+}
+
+func TestPropertiesStoreHandlesWriteError(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, VALUE)
+	err := prop.Store(failingReaderWriter{})
+	if err != TEST_ERROR {
+		t.Fatalf("Expected error %v, got %v", TEST_ERROR, err)
+	}
+}
