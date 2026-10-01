@@ -175,6 +175,7 @@ func (p *Properties) Load(reader io.Reader) error {
 				return
 			}
 		}
+		close(errCh)
 	}()
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
