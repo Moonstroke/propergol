@@ -426,3 +426,14 @@ func TestPropertiesLoadPreservesTrailingCR(t *testing.T) {
 }
 
 var TEST_ERROR error = errors.New("test error")
+
+// An implementation of io.Reader and io.Writer that always fail.
+type failingReaderWriter struct{}
+
+func (_ failingReaderWriter) Read(b []byte) (int, error) {
+	return 0, TEST_ERROR
+}
+
+func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
+	return 0, TEST_ERROR
+}
