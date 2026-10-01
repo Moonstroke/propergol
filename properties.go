@@ -190,6 +190,9 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 	}
 	close(byteCh)
+	if processErr := <-errCh; processErr != nil {
+		return processErr
+	}
 	if state.escaped {
 		return propDefError{state.lineNumber, "line wrapped without a continuation"}
 	}
