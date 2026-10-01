@@ -453,6 +453,15 @@ func (pfr partialFailingReader) Read(b []byte) (int, error) {
 	return n, nil
 }
 
+func TestPropertiesLoadHandlesEmptyInput(t *testing.T) {
+	prop := setUpTestInstance()
+	t.Helper()
+	// An empty reader is basically equivalent to a failingReaderWriter returning io.EOF
+	if err := prop.Load(strings.NewReader("")); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPropertiesLoadHandlesReadError(t *testing.T) {
 	prop := setUpTestInstance()
 	err := prop.Load(failingReaderWriter{})
