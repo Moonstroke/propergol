@@ -159,6 +159,16 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	return nil
 }
 
+func pullBytes(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<- error) {
+	for c := range byteCh {
+		if err := processByte(c, p, state); err != nil {
+			errCh <- err
+			return
+		}
+	}
+	close(errCh)
+}
+
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1024)
@@ -168,15 +178,7 @@ func (p *Properties) Load(reader io.Reader) error {
 		inKey:      true,
 	}
 	errCh := make(chan error, 1)
-	go func(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<- error) {
-		for c := range byteCh {
-			if err := processByte(c, p, state); err != nil {
-				errCh <- err
-				return
-			}
-		}
-		close(errCh)
-	}(p, &state, byteCh, errCh)
+	go pullBytes(p, &state, byteCh, errCh)
 	var err error
 	for n, err := reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
 		for _, c := range buffer[:n] {
