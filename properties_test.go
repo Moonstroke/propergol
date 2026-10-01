@@ -438,6 +438,16 @@ func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
 	return 0, TEST_ERROR
 }
 
+type partialFailingReader struct {
+	text string
+}
+
+func (pfr partialFailingReader) Read(b []byte) (int, error) {
+	// Trash implementation (discards the part of pfr.text that doesn't go into b)
+	// but good enough for the present case
+	return copy(b, pfr.text), TEST_ERROR
+}
+
 func TestPropertiesLoadHandlesReadError(t *testing.T) {
 	prop := setUpTestInstance()
 	err := prop.Load(failingReaderWriter{})
