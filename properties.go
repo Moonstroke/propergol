@@ -169,16 +169,7 @@ func pullBytes(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<-
 	close(errCh)
 }
 
-// Parse properties in text form from the given reader.
-func (p *Properties) Load(reader io.Reader) error {
-	buffer := make([]byte, 1024)
-	byteCh := make(chan byte, 1024)
-	state := loadState{
-		lineNumber: 1,
-		inKey:      true,
-	}
-	errCh := make(chan error, 1)
-	go pullBytes(p, &state, byteCh, errCh)
+func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan error) error {
 	var err error
 	var n int
 	for n, err = reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
@@ -194,6 +185,22 @@ func (p *Properties) Load(reader io.Reader) error {
 	}
 	close(byteCh)
 	if err != io.EOF {
+		return err
+	}
+	return nil
+}
+
+// Parse properties in text form from the given reader.
+func (p *Properties) Load(reader io.Reader) error {
+	buffer := make([]byte, 1024)
+	byteCh := make(chan byte, 1024)
+	state := loadState{
+		lineNumber: 1,
+		inKey:      true,
+	}
+	errCh := make(chan error, 1)
+	go pullBytes(p, &state, byteCh, errCh)
+	if err := pushBytes(reader, buffer, byteCh, errCh); err != nil {
 		return err
 	}
 	if processErr := <-errCh; processErr != nil {
