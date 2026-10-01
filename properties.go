@@ -160,16 +160,17 @@ func processByte(c byte, p *Properties, state *loadState) error {
 }
 
 func pullBytes(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<- error) {
+	defer close(errCh)
 	for c := range byteCh {
 		if err := processByte(c, p, state); err != nil {
 			errCh <- err
 			return
 		}
 	}
-	close(errCh)
 }
 
 func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan error) error {
+	defer close(byteCh)
 	var err error
 	var n int
 	for n, err = reader.Read(buffer); err == nil; n, err = reader.Read(buffer) {
@@ -183,7 +184,6 @@ func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan
 			}
 		}
 	}
-	close(byteCh)
 	if err != io.EOF {
 		return err
 	}
