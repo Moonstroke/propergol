@@ -12,26 +12,33 @@ import (
 // It is intended to be used to centralize configuration data of an application.
 // The property keys and values are represented as string objects.
 type Properties struct {
-	values map[string]string
+	values sync.Map
 }
 
 // Create an empty instance of the Properties structure.
 func New() *Properties {
-	return &Properties{make(map[string]string)}
+	return &Properties{}
 }
 
 // Assign the given value to the property with the specified key.
 // If no property with this key exists, it is added;
 // otherwise, the value is replaced by the one given and the former value is discarded.
 func (p *Properties) Set(key string, value string) {
-	p.values[key] = value
+	p.values.Store(key, value)
 }
 
 // Retrieve the value of the property with the specified key.
 // If there is no property with this key, the empty string is returned.
 func (p *Properties) Get(key string) (string, bool) {
-	val, present := p.values[key]
-	return val, present
+	val, present := p.values.Load(key)
+	if !present {
+		return "", false
+	}
+	str, is_string := val.(string)
+	if !is_string {
+		return "", false
+	}
+	return str, true
 }
 
 type propDefError struct {
@@ -217,22 +224,35 @@ func (p *Properties) Store(writer io.Writer) error {
 		keyEscaper = strings.NewReplacer(oldnew...)
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
 	})
-	for key, val := range p.values {
-		if key[0] == '#' {
-			return fmt.Errorf("Cannot store key %q: it would be read as a comment", key)
+	var e error = nil
+	p.values.Range(func(key, val any) bool {
+		key_str, key_is_string := key.(string)
+		if !key_is_string {
+			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", key)
+			return false
 		}
-		if _, e := keyEscaper.WriteString(writer, key); e != nil {
-			return e
+		if key_str[0] == '#' {
+			e = fmt.Errorf("Cannot store key %q: it would be read as a comment", key_str)
+			return false
 		}
-		if _, e := writer.Write([]byte{'='}); e != nil {
-			return e
+		if _, e = keyEscaper.WriteString(writer, key_str); e != nil {
+			return false
 		}
-		if _, e := valueEscaper.WriteString(writer, val); e != nil {
-			return e
+		if _, e = writer.Write([]byte{'='}); e != nil {
+			return false
 		}
-		if _, e := writer.Write([]byte{'\n'}); e != nil {
-			return e
+		val_str, val_is_string := val.(string)
+		if !val_is_string {
+			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", val)
+			return false
 		}
-	}
-	return nil
+		if _, e = valueEscaper.WriteString(writer, val_str); e != nil {
+			return false
+		}
+		if _, e = writer.Write([]byte{'\n'}); e != nil {
+			return false
+		}
+		return true
+	})
+	return e
 }
