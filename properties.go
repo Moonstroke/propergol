@@ -178,22 +178,57 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	return nil
 }
 
+func pullBytes(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<- error) {
+	defer close(errCh)
+	for c := range byteCh {
+		if err := processByte(c, p, state); err != nil {
+			errCh <- err
+			return
+		}
+	}
+}
+
+func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan error) error {
+	defer close(byteCh)
+	var err error
+	var n int
+	for err == nil {
+		n, err = reader.Read(buffer)
+		for _, c := range buffer[:n] {
+			byteCh <- c
+			select {
+			case processErr := <-errCh:
+				return processErr
+			default:
+				// No error, continue
+			}
+		}
+	}
+	if err != io.EOF {
+		return err
+	}
+	return nil
+}
+
 // Parse properties in text form from the given reader.
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1024)
+	byteCh := make(chan byte, 1024)
 	state := loadState{
 		lineNumber: 1,
 		inKey:      true,
 	}
-	var err error
-	for err == nil {
-		var n int
-		n, err = reader.Read(buffer)
-		for i := range n {
-			if processErr := processByte(buffer[i], p, &state); processErr != nil {
-				return processErr
-			}
+	errCh := make(chan error, 1)
+	go pullBytes(p, &state, byteCh, errCh)
+	var err error = nil
+	if err = pushBytes(reader, buffer, byteCh, errCh); err != nil {
+		// Immediately return a processing error. Otherwise, finish the processed bytes before returning the error
+		if propErr, ok := err.(propDefError); ok {
+			return propErr
 		}
+	}
+	if processErr := <-errCh; processErr != nil {
+		return processErr
 	}
 	if state.escaped {
 		return propDefError{state.lineNumber, "line wrapped without a continuation"}
@@ -209,9 +244,6 @@ func (p *Properties) Load(reader io.Reader) error {
 			state.lastChar++
 		}
 		p.Set(state.key, state.builder.String()[:state.lastChar])
-	}
-	if err == io.EOF {
-		return nil
 	}
 	return err
 }
