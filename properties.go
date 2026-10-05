@@ -52,7 +52,7 @@ func (e propDefError) Error() string {
 
 func unescape(c byte) (byte, bool) {
 	switch c {
-	case '\\', '=':
+	case '\\', '=', '"':
 		return c, true
 	case 'n':
 		return '\n', true
@@ -83,6 +83,8 @@ type loadState struct {
 	key string
 	// Used to construct each property member in turn
 	builder strings.Builder
+	// Index of the last significant (i.e. not discardable whitespace) character in the above builder
+	lastChar uint
 	// Indicates whether the scanner is currently parsing an escape sequence
 	escaped bool
 	// Indicates whether the current property member (key or value) is being parsed
@@ -123,6 +125,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 					return propDefError{state.lineNumber, "illegal escape sequence \\" + string(c)}
 				}
 				state.builder.WriteByte(u)
+				state.lastChar++
 			}
 			state.escaped = false
 		}
@@ -139,10 +142,11 @@ func processByte(c byte, p *Properties, state *loadState) error {
 				// No separator found: ill-formed definition
 				return propDefError{state.lineNumber, "no separator"}
 			}
-			p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
+			p.Set(state.key, state.builder.String()[:state.lastChar])
 			state.builder.Reset()
 			state.inKey = true
 			state.inMember = false
+			state.lastChar = 0
 		}
 		// Reset CRLF sequence flag
 		state.wasCR = false
@@ -151,17 +155,25 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			return propDefError{state.lineNumber, "empty key"}
 		}
 		// Actual separator met. Finalize the key and prepare to build the value
-		state.key = state.builder.String()
+		state.key = state.builder.String()[:state.lastChar]
 		state.builder.Reset()
 		state.inKey = false
 		state.inMember = false
+		state.lastChar = 0
 	case !state.inMember && state.inKey && c == '#':
 		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
 		state.skipLine = true
-	case state.inMember || c != ' ' && c != '\t':
-		// Skip leading whitespace
-		state.builder.WriteByte(c)
+	case c == ' ' || c == '\t':
+		// Only write significant whitespace (i.e. not leading indentation)
+		if state.inMember {
+			state.builder.WriteByte(c)
+		}
+	default:
+		if c != '"' {
+			state.builder.WriteByte(c)
+		}
 		state.inMember = true
+		state.lastChar = uint(state.builder.Len())
 	}
 	return nil
 }
@@ -194,8 +206,9 @@ func (p *Properties) Load(reader io.Reader) error {
 		}
 		if state.wasCR {
 			state.builder.WriteByte('\r')
+			state.lastChar++
 		}
-		p.Set(strings.TrimRight(state.key, " \t"), strings.TrimRight(state.builder.String(), " \t"))
+		p.Set(state.key, state.builder.String()[:state.lastChar])
 	}
 	if err == io.EOF {
 		return nil
@@ -220,6 +233,7 @@ func (p *Properties) Store(writer io.Writer) error {
 			"\b", `\b`,
 			"\x1b", `\e`,
 			"\000", `\0`,
+			`"`, `\"`,
 		}
 		keyEscaper = strings.NewReplacer(oldnew...)
 		valueEscaper = strings.NewReplacer(oldnew[2:]...) /* Skip escaping of = as it has no special meaning in the value */
@@ -231,12 +245,19 @@ func (p *Properties) Store(writer io.Writer) error {
 			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", key)
 			return false
 		}
-		if key_str[0] == '#' {
-			e = fmt.Errorf("Cannot store key %q: it would be read as a comment", key_str)
-			return false
+		keyNeedsQuoting := key_str[0] == '#' || key_str[0] == ' ' || key_str[0] == '\t' || key_str[len(key_str)-1] == ' ' || key_str[len(key_str)-1] == '\t'
+		if keyNeedsQuoting {
+			if _, e = writer.Write([]byte{'"'}); e != nil {
+				return false
+			}
 		}
 		if _, e = keyEscaper.WriteString(writer, key_str); e != nil {
 			return false
+		}
+		if keyNeedsQuoting {
+			if _, e = writer.Write([]byte{'"'}); e != nil {
+				return false
+			}
 		}
 		if _, e = writer.Write([]byte{'='}); e != nil {
 			return false
@@ -246,8 +267,19 @@ func (p *Properties) Store(writer io.Writer) error {
 			e = fmt.Errorf("Expected string, got %[1]T: %[1]v", val)
 			return false
 		}
+		valNeedsQuoting := val_str[0] == ' ' || val_str[0] == '\t' || val_str[len(val_str)-1] == ' ' || val_str[len(val_str)-1] == '\t'
+		if valNeedsQuoting {
+			if _, e = writer.Write([]byte{'"'}); e != nil {
+				return false
+			}
+		}
 		if _, e = valueEscaper.WriteString(writer, val_str); e != nil {
 			return false
+		}
+		if valNeedsQuoting {
+			if _, e = writer.Write([]byte{'"'}); e != nil {
+				return false
+			}
 		}
 		if _, e = writer.Write([]byte{'\n'}); e != nil {
 			return false

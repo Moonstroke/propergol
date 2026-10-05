@@ -337,6 +337,22 @@ func TestPropertiesLoadHandlesEscapedEscInValue(t *testing.T) {
 	assertGetExpected(t, prop, KEY, processedValue)
 }
 
+func TestPropertiesLoadHandlesEscapedDQInKey(t *testing.T) {
+	prop := setUpTestInstance()
+	rawKey := `key with\"escaped double quotes`
+	processedKey := "key with\"escaped double quotes"
+	loadFromString(t, prop, rawKey+"="+VALUE)
+	assertGetExpected(t, prop, processedKey, VALUE)
+}
+
+func TestPropertiesLoadHandlesEscapedDQInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	rawValue := `value with\"escaped double quotes`
+	processedValue := "value with\"escaped double quotes"
+	loadFromString(t, prop, KEY+"="+rawValue)
+	assertGetExpected(t, prop, KEY, processedValue)
+}
+
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsError(t, prop, "illegal\\ escape-sequence="+VALUE)
@@ -345,6 +361,82 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsError(t, prop, KEY+"=illegal\\ escape-sequence")
+}
+
+func TestPropertiesLoadStripsQuotesAroundQuotedKeyWLeadingHash(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "# " + KEY
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
+}
+
+func TestPropertiesLoadPreservesQuotedKeyWLeadingHash(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "# " + KEY
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadStripsQuotesAroundQuotedWhitespaceOnlyKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "   "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
+}
+
+func TestPropertiesLoadPreservesQuotedWhitespaceOnlyKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := "   "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadPreservesQuotedWhitespaceOnlyValue(t *testing.T) {
+	prop := setUpTestInstance()
+	value := "   "
+	loadFromString(t, prop, KEY+`="`+value+`"`)
+	assertGetExpected(t, prop, KEY, value)
+}
+
+func TestPropertiesLoadStripsQuotesAroundQuotedKeyWSurroundingWS(t *testing.T) {
+	prop := setUpTestInstance()
+	key := " " + KEY + " "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetAbsent(t, prop, `"`+key+`"`)
+}
+
+func TestPropertiesLoadPreservesQuotedKeyWSurroundingWS(t *testing.T) {
+	prop := setUpTestInstance()
+	key := " " + KEY + " "
+	loadFromString(t, prop, `"`+key+`"=`+VALUE)
+	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadPreservesValueWSurroundingWS(t *testing.T) {
+	prop := setUpTestInstance()
+	value := " " + VALUE + " "
+	loadFromString(t, prop, KEY+`="`+value+`"`)
+	assertGetExpected(t, prop, KEY, value)
+}
+
+func TestPropertiesLoadDiscardsWSOutOfQuotedKey(t *testing.T) {
+	prop := setUpTestInstance()
+	loadFromString(t, prop, "\t\" "+KEY+` " =`+VALUE)
+	assertGetAbsent(t, prop, "\t "+KEY+"  ")
+}
+
+func TestPropertiesLoadDiscardsNonQuotedWSAroundKey(t *testing.T) {
+	prop := setUpTestInstance()
+	key := " " + KEY + " "
+	loadFromString(t, prop, "\t\""+key+`" =`+VALUE)
+	assertGetExpected(t, prop, key, VALUE)
+}
+
+func TestPropertiesLoadDiscardsNonQuotedWSAroundValue(t *testing.T) {
+	prop := setUpTestInstance()
+	value := " " + VALUE + " "
+	loadFromString(t, prop, KEY+`= "`+value+`"  `)
+	assertGetExpected(t, prop, KEY, value)
 }
 
 func TestPropertiesStoreFollowsReprFormat(t *testing.T) {
@@ -364,12 +456,66 @@ func TestPropertiesStoreEscapesSeparatorInKey(t *testing.T) {
 	}
 }
 
-func TestPropertiesStoreCannotStoreKeyPrefixedWithHashSign(t *testing.T) {
+func TestPropertiesStoreEscapesDQuotesInKey(t *testing.T) {
 	prop := setUpTestInstance()
-	prop.Set("# key", VALUE)
-	e := prop.Store(&strings.Builder{})
-	if e == nil {
-		t.Fatal("Expected failure, but no error was raised")
+	prop.Set(`key"with"embedded"quotes`, VALUE)
+	expected := `key\"with\"embedded\"quotes=` + VALUE
+	if stored := storeToString(t, prop); stored != expected {
+		t.Fatalf("Expected: %q; got: %q", expected, stored)
+	}
+}
+
+func TestPropertiesStoreEscapesDQuotesInValue(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, `value"with"embedded"quotes`)
+	expected := KEY + `=value\"with\"embedded\"quotes`
+	if stored := storeToString(t, prop); stored != expected {
+		t.Fatalf("Expected: %q; got: %q", expected, stored)
+	}
+}
+
+func TestPropertiesStoreStoresKeyPrefixedWithHashSignInDQ(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set("# "+KEY, VALUE)
+	repr := `"# ` + KEY + `"=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuotesWhitespaceOnlyKey(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set("   ", VALUE)
+	repr := `"   "=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuotesWhitespaceOnlyValue(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, "   ")
+	repr := KEY + `="   "`
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuoteKeyWSurroundingWs(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(" "+KEY+" ", VALUE)
+	repr := `" ` + KEY + ` "=` + VALUE
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
+	}
+}
+
+func TestPropertiesStoreQuotesValueWSurroundingWs(t *testing.T) {
+	prop := setUpTestInstance()
+	prop.Set(KEY, " "+VALUE+" ")
+	repr := KEY + `=" ` + VALUE + ` "`
+	if stored := storeToString(t, prop); stored != repr {
+		t.Fatalf("Expected: %q; got %q", repr, stored)
 	}
 }
 
