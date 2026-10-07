@@ -188,7 +188,7 @@ func pullBytes(p *Properties, state *loadState, byteCh <-chan byte, errCh chan<-
 	}
 }
 
-func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan error) error {
+func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan error) (error, bool) {
 	defer close(byteCh)
 	var err error
 	var n int
@@ -198,16 +198,16 @@ func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan
 			byteCh <- c
 			select {
 			case processErr := <-errCh:
-				return processErr
+				return processErr, true
 			default:
 				// No error, continue
 			}
 		}
 	}
 	if err != io.EOF {
-		return err
+		return err, false
 	}
-	return nil
+	return nil, false
 }
 
 // Parse properties in text form from the given reader.
@@ -220,12 +220,10 @@ func (p *Properties) Load(reader io.Reader) error {
 	}
 	errCh := make(chan error, 1)
 	go pullBytes(p, &state, byteCh, errCh)
-	var err error = nil
-	if err = pushBytes(reader, buffer, byteCh, errCh); err != nil {
-		// Immediately return a processing error. Otherwise, finish the processed bytes before returning the error
-		if propErr, ok := err.(propDefError); ok {
-			return propErr
-		}
+	var err error
+	var exitNow bool
+	if err, exitNow = pushBytes(reader, buffer, byteCh, errCh); exitNow {
+		return err
 	}
 	if processErr := <-errCh; processErr != nil {
 		return processErr
