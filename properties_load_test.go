@@ -5,6 +5,23 @@ import (
 	"testing"
 )
 
+/* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
+ * It is basically a strings.Reader that fails with TEST_ERROR instead of io.EOF. */
+type partialFailingReader struct {
+	text string
+}
+
+func (pfr partialFailingReader) Read(b []byte) (int, error) {
+	if len(b) >= len(pfr.text) {
+		/* The whole text (or what's left of it) fits into the buffer */
+		return copy(b, pfr.text), TEST_ERROR
+	}
+	/* Blit what fits and retain what did not for the next Read */
+	n := copy(b, pfr.text)
+	pfr.text = pfr.text[n+1:]
+	return n, nil
+}
+
 func TestPropertiesLoadParsesRepresentation(t *testing.T) {
 	prop := setUpTestInstance()
 	loadFromString(t, prop, REPR)
@@ -392,23 +409,6 @@ func TestPropertiesLoadHandlesReadError(t *testing.T) {
 	if err != TEST_ERROR {
 		t.Fatalf("Expected error %v, got %v", TEST_ERROR, err)
 	}
-}
-
-/* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
- * It is basically a strings.Reader that fails with TEST_ERROR instead of io.EOF. */
-type partialFailingReader struct {
-	text string
-}
-
-func (pfr partialFailingReader) Read(b []byte) (int, error) {
-	if len(b) >= len(pfr.text) {
-		/* The whole text (or what's left of it) fits into the buffer */
-		return copy(b, pfr.text), TEST_ERROR
-	}
-	/* Blit what fits and retain what did not for the next Read */
-	n := copy(b, pfr.text)
-	pfr.text = pfr.text[n+1:]
-	return n, nil
 }
 
 func TestPropertiesLoadHandlesErrorAfterPartialContent(t *testing.T) {

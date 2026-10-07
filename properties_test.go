@@ -71,6 +71,19 @@ func storeToString(t *testing.T, prop *properties.Properties) string {
 	return repr[:len(repr)-1] /* Trim trailing newline */
 }
 
+var TEST_ERROR error = errors.New("test error")
+
+/* FailingReaderWriter is an implementation of io.Reader and io.Writer that always fail. */
+type failingReaderWriter struct{}
+
+func (_ failingReaderWriter) Read(b []byte) (int, error) {
+	return 0, TEST_ERROR
+}
+
+func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
+	return 0, TEST_ERROR
+}
+
 func TestPropertiesGetReturnsValuePassedToSet(t *testing.T) {
 	assertSetAndGetBackSame(t, KEY, VALUE)
 }
@@ -119,17 +132,4 @@ func TestRoundTripLoadThenStoreDoesNotPreserveAllEscSeqs(t *testing.T) {
 	if stored := storeToString(t, prop); stored != processedRepr {
 		t.Fatalf("Expected: %q; got %q", processedRepr, stored)
 	}
-}
-
-var TEST_ERROR error = errors.New("test error")
-
-/* FailingReaderWriter is an implementation of io.Reader and io.Writer that always fail. */
-type failingReaderWriter struct{}
-
-func (_ failingReaderWriter) Read(b []byte) (int, error) {
-	return 0, TEST_ERROR
-}
-
-func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
-	return 0, TEST_ERROR
 }
