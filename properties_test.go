@@ -573,7 +573,7 @@ func TestPropertiesLoadPreservesTrailingCR(t *testing.T) {
 
 var TEST_ERROR error = errors.New("test error")
 
-// An implementation of io.Reader and io.Writer that always fail.
+/* FailingReaderWriter is an implementation of io.Reader and io.Writer that always fail. */
 type failingReaderWriter struct{}
 
 func (_ failingReaderWriter) Read(b []byte) (int, error) {
@@ -590,10 +590,10 @@ type partialFailingReader struct {
 
 func (pfr partialFailingReader) Read(b []byte) (int, error) {
 	if len(b) >= len(pfr.text) {
-		// The whole test (or what's left of it) fits into the buffer
+		/* The whole text (or what's left of it) fits into the buffer */
 		return copy(b, pfr.text), TEST_ERROR
 	}
-	// Blit what fits and only keep the rest
+	/* Blit what fits and retain what did not for the next Read */
 	n := copy(b, pfr.text)
 	pfr.text = pfr.text[n+1:]
 	return n, nil
@@ -602,7 +602,7 @@ func (pfr partialFailingReader) Read(b []byte) (int, error) {
 func TestPropertiesLoadHandlesEmptyInput(t *testing.T) {
 	prop := setUpTestInstance()
 	t.Helper()
-	// An empty reader is basically equivalent to a failingReaderWriter returning io.EOF
+	/* An empty reader is basically equivalent to a failingReaderWriter returning io.EOF */
 	if err := prop.Load(strings.NewReader("")); err != nil {
 		t.Fatal(err)
 	}

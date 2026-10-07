@@ -1,4 +1,7 @@
-// Package properties provides a structure that centralizes and manipulates application properties.
+/* Properties are key-to-value mappings
+ * that are used to configure application state and behavior.
+ * This package provides a structure that centralizes and manipulates such mappings.
+ */
 package properties
 
 import (
@@ -8,27 +11,30 @@ import (
 	"sync"
 )
 
-// This structure represents a mapping of keys to values.
-// It is intended to be used to centralize configuration data of an application.
-// The property keys and values are represented as string objects.
+/* Properties is a container for key-value mappings.
+ * It is intended to be used to centralize configuration data of an application.
+ * The property keys and values are represented as strings.
+ */
 type Properties struct {
 	values sync.Map
 }
 
-// Create an empty instance of the Properties structure.
+/* New creates an empty instance of the Properties structure. */
 func New() *Properties {
 	return &Properties{}
 }
 
-// Assign the given value to the property with the specified key.
-// If no property with this key exists, it is added;
-// otherwise, the value is replaced by the one given and the former value is discarded.
+/* Set assigns the given value to the property with the specified key.
+ * If no property with this key exists, it is added;
+ * otherwise, the value is replaced by the one given and the former value is discarded.
+ */
 func (p *Properties) Set(key string, value string) {
 	p.values.Store(key, value)
 }
 
-// Retrieve the value of the property with the specified key.
-// If there is no property with this key, the empty string is returned.
+/* Get retrieves the value of the property with the specified key.
+ * If there is no property with this key, the empty string is returned.
+ */
 func (p *Properties) Get(key string) (string, bool) {
 	val, present := p.values.Load(key)
 	if !present {
@@ -76,30 +82,31 @@ func unescape(c byte) (byte, bool) {
 	return '?', false
 }
 
-// Holds data used while processing input
+/* LoadState holds data used while processing input. */
 type loadState struct {
+	/* The number of the physical line (i.e. (CR)LF-separated) currently processed */
 	lineNumber uint
-	// Retains the key of the current definition (empty before the separator has been found)
+	/* The key of the current definition (empty before the separator has been found) */
 	key string
-	// Used to construct each property member in turn
+	/* Used to construct each property member (key or value) in turn */
 	builder strings.Builder
-	// Index of the last significant (i.e. not discardable whitespace) character in the above builder
+	/* Index of the last significant (i.e. not discardable whitespace) character in the above builder */
 	lastChar uint
-	// Indicates whether the scanner is currently parsing an escape sequence
+	/* Currently parsing an escape sequence */
 	escaped bool
-	// Indicates whether the current property member (key or value) is being parsed
-	// (i.e. if we are no longer scanning leading whitespace)
+	/* The current property member (key or value) is actually being parsed
+	 * (i.e. we are no longer scanning leading whitespace) */
 	inMember bool
-	// Indicates whether we are parsing the key or value (i.e. the separator has been met)
+	/* Currently parsing the key or value (i.e. the separator has been met) */
 	inKey bool
-	// Indicates whether we are currently reading a comment line (to be skipped)
+	/* Currently reading a comment line (to be skipped) */
 	skipLine bool
-	// Indicats that the previous character was a Carriage Return
+	/* The previous character was a Carriage Return */
 	wasCR bool
 }
 
 func processByte(c byte, p *Properties, state *loadState) error {
-	// Does not fit in the state switch because c still needs to be processed after an optional stray CR is handled
+	/* Does not fit in the state switch because c still needs to be processed after an optional stray CR is handled */
 	if state.wasCR && c != '\n' {
 		state.builder.WriteByte('\r')
 		state.wasCR = false
@@ -111,13 +118,14 @@ func processByte(c byte, p *Properties, state *loadState) error {
 		}
 	case state.escaped:
 		if c == '\r' {
+			/* Maybe a CRLF sequence. Only mark the flag and skip to next byte */
 			state.wasCR = true
 		} else {
 			if c == '\n' {
-				// Wrapped line
+				/* Wrapped line */
 				state.lineNumber++
 				state.inMember = false
-				// Reset CRLF sequence flag
+				/* CRLF sequence complete, reset flag */
 				state.wasCR = false
 			} else {
 				u, ok := unescape(c)
@@ -135,11 +143,11 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	case c == '\r':
 		state.wasCR = true
 	case c == '\n':
-		// End of physical line (escaped line breaks already handled above)
-		// not in a member => blank or empty line: no property to add.
+		/* End of physical line (escaped line breaks already handled above)
+		 * not in a member => blank or empty line: no property to add. */
 		if state.inMember {
 			if state.inKey {
-				// No separator found: ill-formed definition
+				/* No separator found: ill-formed definition */
 				return propDefError{state.lineNumber, "no separator"}
 			}
 			p.Set(state.key, state.builder.String()[:state.lastChar])
@@ -148,23 +156,23 @@ func processByte(c byte, p *Properties, state *loadState) error {
 			state.inMember = false
 			state.lastChar = 0
 		}
-		// Reset CRLF sequence flag
+		/* Reset CRLF sequence flag */
 		state.wasCR = false
 	case c == '=' && state.inKey:
 		if !state.inMember {
 			return propDefError{state.lineNumber, "empty key"}
 		}
-		// Actual separator met. Finalize the key and prepare to build the value
+		/* Actual separator met. Finalize the key and prepare to build the value */
 		state.key = state.builder.String()[:state.lastChar]
 		state.builder.Reset()
 		state.inKey = false
 		state.inMember = false
 		state.lastChar = 0
 	case !state.inMember && state.inKey && c == '#':
-		// (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace)
+		/* (!state.inMember && state.inKey) <=> at the beginning of the line (index 0 or in indentation whitespace) */
 		state.skipLine = true
 	case c == ' ' || c == '\t':
-		// Only write significant whitespace (i.e. not leading indentation)
+		/* Only write significant whitespace (i.e. not leading indentation) */
 		if state.inMember {
 			state.builder.WriteByte(c)
 		}
@@ -200,7 +208,7 @@ func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan
 			case processErr := <-errCh:
 				return processErr, true
 			default:
-				// No error, continue
+				/* No error, continue */
 			}
 		}
 	}
@@ -210,7 +218,7 @@ func pushBytes(reader io.Reader, buffer []byte, byteCh chan<- byte, errCh <-chan
 	return nil, false
 }
 
-// Parse properties in text form from the given reader.
+/* Load parses properties in text form from the given reader. */
 func (p *Properties) Load(reader io.Reader) error {
 	buffer := make([]byte, 1024)
 	byteCh := make(chan byte, 1024)
@@ -231,10 +239,10 @@ func (p *Properties) Load(reader io.Reader) error {
 	if state.escaped {
 		return propDefError{state.lineNumber, "line wrapped without a continuation"}
 	}
-	// Process last line if no trailing EOL was found
+	/* Process last line if no trailing EOL was found */
 	if state.inMember {
 		if state.inKey {
-			// No separator found: ill-formed definition
+			/* No separator found: ill-formed definition */
 			return propDefError{state.lineNumber, "no separator"}
 		}
 		if state.wasCR {
@@ -249,7 +257,7 @@ func (p *Properties) Load(reader io.Reader) error {
 var keyEscaper, valueEscaper *strings.Replacer
 var replacerInit sync.Once
 
-// Output the properties in text form to the given writer.
+/* Store outputs the properties in text form to the given writer. */
 func (p *Properties) Store(writer io.Writer) error {
 	replacerInit.Do(func() {
 		oldnew := []string{
