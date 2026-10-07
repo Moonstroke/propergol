@@ -586,6 +586,8 @@ func (_ failingReaderWriter) Write(p []byte) (n int, err error) {
 	return 0, TEST_ERROR
 }
 
+/* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
+ * It is basically a strings.Reader that fails with TEST_ERROR instead of io.EOF. */
 type partialFailingReader struct {
 	text string
 }
