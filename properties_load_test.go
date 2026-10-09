@@ -7,11 +7,13 @@ import (
 	properties "github.com/Moonstroke/propergol"
 )
 
-func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr string) {
+func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr string) error {
 	t.Helper()
-	if e := prop.Load(strings.NewReader(repr)); e == nil {
+	var e error
+	if e = prop.Load(strings.NewReader(repr)); e == nil {
 		t.Fatal("Expected failure, but no error was raised")
 	}
+	return e
 }
 
 /* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
