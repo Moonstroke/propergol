@@ -158,6 +158,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 		}
 		/* Reset CRLF sequence flag */
 		state.wasCR = false
+		state.lineNumber++
 	case c == '=' && state.inKey:
 		if !state.inMember {
 			return propDefError{state.lineNumber, "empty key"}
