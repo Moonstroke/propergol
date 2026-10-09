@@ -3,7 +3,16 @@ package properties_test
 import (
 	"strings"
 	"testing"
+
+	properties "github.com/Moonstroke/propergol"
 )
+
+func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr string) {
+	t.Helper()
+	if e := prop.Load(strings.NewReader(repr)); e == nil {
+		t.Fatal("Expected failure, but no error was raised")
+	}
+}
 
 /* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
  * It is basically a strings.Reader that fails with TEST_ERROR instead of io.EOF. */

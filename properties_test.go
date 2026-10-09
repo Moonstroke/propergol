@@ -44,13 +44,6 @@ func assertGetAbsent(t *testing.T, prop *properties.Properties, key string) {
 	}
 }
 
-func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr string) {
-	t.Helper()
-	if e := prop.Load(strings.NewReader(repr)); e == nil {
-		t.Fatal("Expected failure, but no error was raised")
-	}
-}
-
 func loadFromString(t *testing.T, prop *properties.Properties, data string) {
 	t.Helper()
 	if e := prop.Load(strings.NewReader(data)); e != nil {
