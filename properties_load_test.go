@@ -1,6 +1,7 @@
 package properties_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -14,6 +15,14 @@ func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr stri
 		t.Fatal("Expected failure, but no error was raised")
 	}
 	return e
+}
+
+func assertLoadReturnsErrorWithLineNum(t *testing.T, prop *properties.Properties, repr string, line uint) {
+	t.Helper()
+	msg := assertLoadReturnsError(t, prop, repr).Error()
+	if !strings.Contains(msg, "line "+fmt.Sprint(line)) {
+		t.Fatalf("Line number %d not found in error message %q", line, msg)
+	}
 }
 
 /* PartialFailingReader is an implementation of io.Reader that fails after successfully reading the specified text.
