@@ -396,6 +396,66 @@ func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine2ContWithLineBre
 	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\n=value with\\\ncontinuation line\n", 2)
 }
 
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine1NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "ke\\y="+VALUE, 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine1WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "ke\\y="+VALUE+"\n", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine2NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nke\\y2="+VALUE, 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine2WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nke\\y2="+VALUE+"\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine1ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "ke\\y with\\\ncontinuation line="+VALUE, 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine1ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "ke\\y with\\\ncontinuation line="+VALUE+"\n", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine2ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nke\\y with\\\ncontinuation line="+VALUE, 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyLine2ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nke\\y with\\\ncontinuation line="+VALUE+"\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyContLine1ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "key with\\\ncontin\\uation line="+VALUE, 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyContLine1ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "key with\\\ncontin\\uation line="+VALUE+"\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyContLine2ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontin\\uation line="+VALUE, 3)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInKeyContLine2ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontin\\uation line"+VALUE+"\n", 3)
+}
+
 func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInValLine1NoLineBreak(t *testing.T) {
 	prop := setUpTestInstance()
 	assertLoadReturnsErrorWithLineNum(t, prop, KEY+"=val\\ue", 1)
