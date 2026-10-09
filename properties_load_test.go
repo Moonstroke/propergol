@@ -316,6 +316,46 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
 	assertLoadReturnsError(t, prop, KEY+"=illegal\\ escape-sequence")
 }
 
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine1NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, KEY, 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine1WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, KEY+"\n", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine2NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nKEY2", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine2WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nKEY2\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine1ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "key with\\\ncontinuation line", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine1ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "key with\\\ncontinuation line\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine2ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontinuation line", 3)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine2ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontinuation line\n", 3)
+}
+
 func TestPropertiesLoadStripsQuotesAroundQuotedKeyWLeadingHash(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
