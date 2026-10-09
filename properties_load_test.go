@@ -356,6 +356,46 @@ func TestPropertiesLoadDisplaysLineNumberInErrorMsg_NoSeparatorLine2ContWithLine
 	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontinuation line\n", 3)
 }
 
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine1NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "=value", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine1WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "=value\n", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine2NoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\n=value2", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine2WithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\n=value2\n", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine1ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "=value with\\\ncontinuation line", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine1ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "=value with\\\ncontinuation line\n", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine2ContNoLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\n=value with\\\ncontinuation line", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_EmptyKeyLine2ContWithLineBreak(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\n=value with\\\ncontinuation line\n", 2)
+}
+
 func TestPropertiesLoadStripsQuotesAroundQuotedKeyWLeadingHash(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
