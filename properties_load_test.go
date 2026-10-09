@@ -516,6 +516,46 @@ func TestPropertiesLoadDisplaysLineNumberInErrorMsg_InvalidEscSeqInValContLine2C
 	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey2=value with\\\ncontin\\uation line\n", 3)
 }
 
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine1(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, KEY+"=value\\", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine1NoValue(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, KEY+"\\", 1)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine2(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nKEY2=value\\", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine2NoValue(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nKEY2\\", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine1Cont(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, KEY+"=value with\\\ncontinuation line\\", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine1ContNoValue(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, "key with\\\ncontinuation line\\", 2)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine2Cont(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey=value with\\\ncontinuation line\\", 3)
+}
+
+func TestPropertiesLoadDisplaysLineNumberInErrorMsg_TrailingEscLine2ContNoValue(t *testing.T) {
+	prop := setUpTestInstance()
+	assertLoadReturnsErrorWithLineNum(t, prop, REPR+"\nkey with\\\ncontinuation line\\", 3)
+}
+
 func TestPropertiesLoadStripsQuotesAroundQuotedKeyWLeadingHash(t *testing.T) {
 	prop := setUpTestInstance()
 	key := "# " + KEY
