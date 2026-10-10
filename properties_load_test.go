@@ -321,22 +321,22 @@ func TestPropertiesLoadForbidsIllegalEscapeSequencesInKey(t *testing.T) {
 
 func TestPropertiesLoadForbidsLegalEscapeSequenceWithCRInValue(t *testing.T) {
 	prop := setUpTestInstance()
-	assertLoadReturnsError(t, prop, KEY+"=legal\\\rnescape-sequence")
+	assertLoadReturnsErrorContaining(t, prop, KEY+"=legal\\\rnescape-sequence", "\\ + CR")
 }
 
 func TestPropertiesLoadForbidsLegalEscapeSequenceWithCRInKey(t *testing.T) {
 	prop := setUpTestInstance()
-	assertLoadReturnsError(t, prop, "legal\\\rnescape-sequence="+VALUE)
+	assertLoadReturnsErrorContaining(t, prop, "legal\\\rnescape-sequence="+VALUE, "\\ + CR")
 }
 
 func TestPropertiesLoadForbidsIllegalEscapeSequenceWithCRInValue(t *testing.T) {
 	prop := setUpTestInstance()
-	assertLoadReturnsError(t, prop, KEY+"=illegal\\\r escape-sequence")
+	assertLoadReturnsErrorContaining(t, prop, KEY+"=illegal\\\r escape-sequence", "\\ + CR")
 }
 
 func TestPropertiesLoadForbidsIllegalEscapeSequenceWithCRInKey(t *testing.T) {
 	prop := setUpTestInstance()
-	assertLoadReturnsError(t, prop, "illegal\\\r escape-sequence="+VALUE)
+	assertLoadReturnsErrorContaining(t, prop, "illegal\\\r escape-sequence="+VALUE, "\\ + CR")
 }
 
 func TestPropertiesLoadForbidsIllegalEscapeSequencesInValue(t *testing.T) {
