@@ -17,6 +17,14 @@ func assertLoadReturnsError(t *testing.T, prop *properties.Properties, repr stri
 	return e
 }
 
+func assertLoadReturnsErrorContaining(t *testing.T, prop *properties.Properties, repr, excerpt string) {
+	t.Helper()
+	msg := assertLoadReturnsError(t, prop, repr).Error()
+	if !strings.Contains(msg, excerpt) {
+		t.Fatalf("%q not found in %q", excerpt, msg)
+	}
+}
+
 func assertLoadReturnsErrorWithLineNum(t *testing.T, prop *properties.Properties, repr string, line uint) {
 	t.Helper()
 	msg := assertLoadReturnsError(t, prop, repr).Error()
