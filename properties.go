@@ -115,6 +115,7 @@ func processByte(c byte, p *Properties, state *loadState) error {
 	case state.skipLine:
 		if c == '\n' {
 			state.skipLine = false
+			state.lineNumber++
 		}
 	case state.escaped:
 		if c == '\r' {
