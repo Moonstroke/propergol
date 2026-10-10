@@ -128,6 +128,8 @@ func processByte(c byte, p *Properties, state *loadState) error {
 				state.inMember = false
 				/* CRLF sequence complete, reset flag */
 				state.wasCR = false
+			} else if state.wasCR {
+				return propDefError{state.lineNumber, "illegal escape sequence \\ + CR"}
 			} else {
 				u, ok := unescape(c)
 				if !ok {
